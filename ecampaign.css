@@ -1,0 +1,66 @@
+
+.ajaxform {
+	background-color:#DFD; 
+  padding: 10px
+}
+
+.smaller  {
+  font-size: x-small ;
+  color: grey ;
+}
+
+.smaller a, a.smaller {
+  font-size: x-small ;
+  font-style: italic ;
+  text-decoration:none;
+}
+
+.advisory {
+  font-size: x-small ;
+	padding: 15px 0px;
+}
+
+
+.fixedShort {
+  float:left;
+  min-width: 80px;
+}
+
+.fixedLong {
+  float:left;
+  min-width: 150px;
+}
+
+
+.field {
+	 width : 200px ;
+}
+
+.shifted-label {
+  position : relative ;
+  right  :  195px ; 
+  z-index : 1 ;
+  color : grey ;
+  opacity : 1 ;
+}
+
+
+.float
+{
+  float:left;
+}
+
+
+.clear {
+  clear:both;
+}
+
+.hidden {
+  display:none ;
+}
+
+.first, .subsequent
+{
+  padding 5px 0 5px 0 ;
+}
+
