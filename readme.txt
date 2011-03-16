@@ -53,19 +53,23 @@ e.g.
 
 == Frequently Asked Questions ==
 
-
+None yet.
 
 == Screenshots ==
 
-1. `/tags/4.3/screen1.png` 
-2. `/tags/4.3/screen2.png` 
+1. First screen  `/trunk/screen1.png` 
+2. Second screen `/trunk/screen2.png` 
 
 == Changelog ==
 
 = 0.1 =
 * First version
 
+
 == Upgrade Notice ==
+
+= 0.1 =
+First version.
 
 
 == Configuration ==
@@ -74,19 +78,20 @@ Usage
 
 Below there is an example of the text you should place on on a wordpress post or page.  
 
-[ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council’s proposals to introduce a Residents’ Roamer, and unlimited visitors’ vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
+[ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council's proposals to introduce a Residents Roamer, and unlimited visitors vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
 Dear Sirs
 
-Objection to Islington Council’s proposals to introduce a Residents’ Roamer, and unlimited visitors’ vouchers (Ref. TMO/3176)
+Objection to Islington Council's proposals to introduce a Residents' Roamer, and unlimited visitors vouchers (Ref. TMO/3176)
 
 I am writing to object to the above changes in parking rules. I believe they will lead to an increase in traffic, and will worsen conditions for pedestrians, cyclists and buses, as well as leading to an increase in pollution and climate change emissions.
 
 In addition, in parts of the borough, the changes could result in there sometimes being insufficient parking bays available for local permit holders.
 
 I therefore call on Islington Council to abandon the scheme.
-<hr />
+'<hr />'
 Please email Islington Council about the roamer parking scheme which will increase traffic.
 [/ecampaign]
 
-Note that between the [ecampaign] tags, there are two messages separated by <hr/>.  The second message is hidden 
-until the first message is sent. New lines are not permitted inside the [ecampaign  ] tag.
+Note that between the [ecampaign] tags, there are two messages separated by '<hr />'.
+The second message is hidden until the first message is sent. 
+New lines are not permitted inside the [ecampaign  ] tag.
