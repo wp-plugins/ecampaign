@@ -43,12 +43,9 @@ There is currently no CAPTCHA protection.
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
-
-e.g.
-
-1. Upload `ecampaign.*` to the `/wp-content/plugins/ecampaign/` directory
+1. Install using 'Plugin, add new" or upload ecampaign.zip to the server and unzip in `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
+1. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
 1. Create a page that contains [ecampaign] and [/ecampaign] tags.
 
 == Frequently Asked Questions ==
@@ -57,19 +54,19 @@ None yet.
 
 == Screenshots ==
 
-1. First screen  `/trunk/screen1.png` 
-2. Second screen `/trunk/screen2.png` 
+1. screen1.png - upper block showing the email succesfully sent to target
+2. screen2.png - lower block made visible when email succesfully sent to target
 
 == Changelog ==
 
-= 0.1 =
+= 0.7 =
 * First version
 
 
 == Upgrade Notice ==
 
-= 0.1 =
-First version.
+= 0.7 =
+*First version.
 
 
 == Configuration ==
@@ -78,20 +75,24 @@ Usage
 
 Below there is an example of the text you should place on on a wordpress post or page.  
 
-[ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council's proposals to introduce a Residents Roamer, and unlimited visitors vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
-Dear Sirs
+    [ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council's proposals to introduce a Residents Roamer, and unlimited visitors vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
+    Dear Sirs
 
-Objection to Islington Council's proposals to introduce a Residents' Roamer, and unlimited visitors vouchers (Ref. TMO/3176)
+    Objection to Islington Council's proposals to introduce a Residents' Roamer, and unlimited visitors vouchers (Ref. TMO/3176)
 
-I am writing to object to the above changes in parking rules. I believe they will lead to an increase in traffic, and will worsen conditions for pedestrians, cyclists and buses, as well as leading to an increase in pollution and climate change emissions.
+    I am writing to object to the above changes in parking rules. I believe they will lead to an increase in traffic, and will worsen conditions for pedestrians, cyclists and buses, as well as leading to an increase in pollution and climate change emissions.
 
-In addition, in parts of the borough, the changes could result in there sometimes being insufficient parking bays available for local permit holders.
+    In addition, in parts of the borough, the changes could result in there sometimes being insufficient parking bays available for local permit holders.
 
-I therefore call on Islington Council to abandon the scheme.
-'<hr />'
-Please email Islington Council about the roamer parking scheme which will increase traffic.
-[/ecampaign]
+    I therefore call on Islington Council to abandon the scheme.
+    <hr />
+    Hi friend,
+    Please email Islington Council about the roamer parking scheme which will increase traffic.
+    [/ecampaign]
 
-Note that between the [ecampaign] tags, there are two messages separated by '<hr />'.
+Note that between the [ecampaign] tags, there are the bodies of two emails, separated by 
+
+    <hr />.
+
 The second message is hidden until the first message is sent. 
 New lines are not permitted inside the [ecampaign  ] tag.

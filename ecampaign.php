@@ -1,12 +1,11 @@
 <?php
 /*
  Plugin Name: Ecampaign
- Plugin URI:
- Description: This plugin sets up a pre-prepared email to the website visitor which s/he can personalize and submit.
- Version: 0.6 2011-02-06 help added,
-          0.7 2011-03-11 add flexible form layout
+ Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
+ Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
+ Version: 0.7
  Author: John Ackers
- Author URI: http://www.biofuelwatch.org.uk/
+ Author URI:
  */
 
 
