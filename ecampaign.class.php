@@ -371,7 +371,7 @@ EOT;
       $field->visitorName,
       $field->address1,$field->address2,$field->postcode,$field->country,
       $field->references));
-    return $this->options->thankYouText ;
+
     $success = $mailer->Send();
 
     if (!$success)

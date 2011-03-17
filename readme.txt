@@ -34,7 +34,7 @@ email to his/her friends.
 
 There is only one user facing page and and user interaction is via ajax.
 
-Mail is not sent via the PHPMailer class because it provides access to 
+Mail is sent directly via the PHPMailer class because it provides access to 
 error messages which aren't available through wp_mail.
 Email addresses that appear on screen and in the html are broken up 
 to make it slightly more difficult for spammers.
@@ -63,13 +63,19 @@ None yet.
 
 == Changelog ==
 
-= 0.71 
+= 0.72 =
+* Previous version didn't send email to target. Send suppressed to take screenshots!  
+
+= 0.71 =
 * Documentation changes and improvements only.
 
 = 0.7 =
 * First version
 
 == Upgrade Notice ==
+
+= 0.72 =
+* Upgrade needed to send message to target, see Changelog 
 
 = 0.71 =
 * No code changes, upgrade not required.
