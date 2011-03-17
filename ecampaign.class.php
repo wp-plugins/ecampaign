@@ -85,8 +85,7 @@ please go to this webpage below."
 </div>
 <h3>Notes</h3>
 <p>
-The web address of this alert is added automatically to the email that is sent to friends.
-You don't need to specify it. The subject can include single quotes but not double quotes.
+The subject can include single quotes but not double quotes.
 You can set the campaign email and other options in the admin pages.  You can override
 the campaignEmail address on the particular action.
 </p>

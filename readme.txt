@@ -13,19 +13,19 @@ into any wordpress page or post.
 
 This plugin allows a campaign action to be embedded into any wordpress page 
 or post. The plugin presents the site visitor with a prepared email.
-The vistor can add their own details (configurable), optionally modify the 
+The vistor can add their own details, email address etc., optionally modify the 
 text of the email and send it.
 The email is sent to the target email address and copied to their own 
 email address. The details of the site visitor, including IP address 
-and email message are  sent to the campaign email address.   
+and email message are sent to the campaign email address.   
 
 The site administrator can change the campaign email address, the form layout 
 and select mandatory fields and additional checkboxes (to prompt the user for 
 further campaign updates). No data is stored on the site database. There is 
-a test mode that diverts emails from the target address to 
+a test mode that diverts emails from the target address to the campaign addreess.
  
-The page editor can create new campaign actions by creating a new post 
-and embedding the default text of the email alonf with the default subject 
+The page editor can create new campaign actions by creating a new post or page
+and embedding the default text of the email along with the default subject 
 of the email,  the target address and if necessary override the campaign 
 address.
 
@@ -44,9 +44,13 @@ There is currently no CAPTCHA protection.
 == Installation ==
 
 1. Install using 'Plugin, add new" or upload ecampaign.zip to the server and unzip in `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
-1. Create a page that contains [ecampaign] and [/ecampaign] tags.
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
+4. Create a page that contains [ecampaign] and [/ecampaign] tags, see Setting up a campaign action
+
+If you are using the SMTP transport option offered by PHPMailer, the 
+SMTP parameters must be configured either in php.ini or, for developement
+or testing, directly in the top of wp-includes/class-phpmailer.php.
 
 == Frequently Asked Questions ==
 
@@ -54,24 +58,29 @@ None yet.
 
 == Screenshots ==
 
-1. screen1.png - upper block showing the email succesfully sent to target
-2. screen2.png - lower block made visible when email succesfully sent to target
+1. screenshot-1.png - upper block showing the email succesfully sent to target
+2. screenshot-2.png - lower block made visible when email succesfully sent to target
 
 == Changelog ==
+
+= 0.71 
+* Documentation changes and improvements only.
 
 = 0.7 =
 * First version
 
-
 == Upgrade Notice ==
 
+= 0.71 =
+* No code changes, upgrade not required.
+
 = 0.7 =
-*First version.
+* First version.
 
 
-== Configuration ==
 
-Usage
+== Setting up a Campaign Action ==
+
 
 Below there is an example of the text you should place on on a wordpress post or page.  
 
@@ -90,9 +99,9 @@ Below there is an example of the text you should place on on a wordpress post or
     Please email Islington Council about the roamer parking scheme which will increase traffic.
     [/ecampaign]
 
-Note that between the [ecampaign] tags, there are the bodies of two emails, separated by 
+Note that between [ecampaign] and [/ecampaign], there are the bodies of two emails, separated by 
 
     <hr />.
 
 The second message is hidden until the first message is sent. 
-New lines are not permitted inside the [ecampaign  ] tag.
+New lines are not permitted inside the [ecampaign  ] shortcode.
