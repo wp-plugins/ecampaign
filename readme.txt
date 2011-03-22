@@ -63,16 +63,26 @@ None yet.
 
 == Changelog ==
 
+= 0.73 =
+* GPL2 copyright added. Contact details added. 
+* Add %zipcode %city %state and other optional fields, 
+* Add browser checks on US zipcode, UK postcode.
+* Fixed referer field in email sent to campaignEmail.
+* i18n string conversion added but not fully tested.
+
 = 0.72 =
 * Previous version didn't send email to target. Send suppressed to take screenshots!  
 
 = 0.71 =
 * Documentation changes and improvements only.
 
-= 0.7 =
+= 0.70 =
 * First version
 
 == Upgrade Notice ==
+
+= 0.73 =
+* Small enhancements and some bug fixes, upgrade optional.
 
 = 0.72 =
 * Upgrade needed to send message to target, see Changelog 

@@ -9,15 +9,7 @@ tag embedded in wordpress post or page.
 
 requires PHP version > 5.0
 
-version: 0.6 2011-02-06 help added,
-         0.7 2011-03-11 add flexible form layout
-
-
-todo : sort out subject, check html is clean, especially subject, use textarea
-// make tool to check out protection/injection, check wp_mail field protection.
-
 */
-
 
 
 class Ecampaign
@@ -134,24 +126,25 @@ EOT;
     'campaignEmail'  =>  $this->options->campaignEmail
     ), $pageAttributesArray));
 
-    $html = "" ;
+    $error = array() ;
 
     if (empty($page->targetEmail))
-      $html .= "'targetEmail' not set. " ;
+      $error[] = sprintf(__('%s not set.'), 'targetEmail') ;
 
     if (empty($page->targetSubject))
-      $html .= "'targetSubject' not set. " ;
+      $error[] = sprintf(__('%s not set.'), 'targetSubject') ;
 
     if (empty($page->friendSubject))
-      $html .=  "'friendSubject' not set. " ;
+      $error[] = sprintf(__('%s not set.'), 'friendSubject') ;
 
     if (empty($messageBody))
-      $html .= "there is no text between [ecampaign] and [/ecampaign]. " ;
+      $error[] = sprintf(__("there is no text between [ecampaign] and [/ecampaign].")) ;
+
 
     $messageBodyParts = preg_split("$<hr[^/]*/>$", $messageBody);
     if (count($messageBodyParts) < 2)
     {
-      $this->html .= "cannot find a &lt;hr/&gt; between the introduction of the action and the suggested message text.<br/>" ;
+      $error[] = __("cannot find a &lt;hr/&gt; between the introduction of the action and the suggested message text." . "<br/>") ;
     }
     else
     {
@@ -159,78 +152,83 @@ EOT;
       $page->friendBody = trim(preg_replace("$^</[pP]>$", "\n", $messageBodyParts[1]));
     }
 
-    if (!empty($html))
-      die("ecampaign not setup properly:<p>$html</p><p>{$this->help()}</p>");
+    if (count($error) > 0)
+    {
+      $errorText = implode('</p><p>', $error);
+      die(__('ecampaign: page not setup properly')."<p>$errorText</p> <p>{$this->help()}</p>");
+    }
 
     $options = $this->options ;  // er just being lazy
 
     $campaignEmailBrokenUp = Ecampaign::breakupEmail($page->campaignEmail);
     $targetEmailBrokenUp = Ecampaign::breakupEmail($page->targetEmail);
 
-    $matches = array();  preg_match_all('$%[\w]*$', $options->layout, $matches);
+    $oldString = '$%[\w]*$';
+
+    $allMatchResults = array();  preg_match_all('$%([0-9]{0,2})[\.]?([0-9]{0,2})([\w]*)$', $options->layout, $allMatchResults);
     $layout = $options->layout;
 
-    foreach($matches[0] as $match)
+    $fieldsets = array(
+      'subject'    => array(__('Subject'),  65,20),
+      'visitorName'=> array(__('Name'),     15, 2),
+      'address1'   => array(__('Address 1'),15, 4), // default width and minimum number of chars
+      'address2'   => array(__('Address 2'),15, 0),
+      'address3'   => array(__('Address 3'),15, 0),
+      'city'       => array(__('City'),     15, 2),
+      'postcode'   => array(__('Postcode'), 10, 2),
+      'ukpostcode' => array(__('Postcode'), 10, 2, 'validatePostcode'),
+      'zipcode'    => array(__('Zipcode'),  10, 2, 'validateZipcode'),
+      'state'      => array(__('State'),    2,  2),
+      'country'    => array(__('Country'),  15, 2),
+    );
+
+
+    for($i = 0 ;  $i < count($allMatchResults[0]) ; $i++)
     {
+      $wholeMatch = $allMatchResults[0][$i];
+      $max = $allMatchResults[1][$i];
+      $min = $allMatchResults[2][$i];
+      $match = $allMatchResults[3][$i];
       $replace = null ;
       switch($match) {
 
-        case '%to' :
+        case 'to' :
           $recipientsBrokenUp = $options->testMode ? $campaignEmailBrokenUp : $targetEmailBrokenUp;
           $settingsUrl =  admin_url("options-general.php?page=ecampaign");
           $helpOutOfTestMode =  $options->testMode ?  "<span class='smaller'>[in test mode <a href='{$settingsUrl}')>change</a>]</span>" : "" ;
           $replace = "<p>to: $recipientsBrokenUp $helpOutOfTestMode</p>" ;
           break ;
 
-        case '%subject' :
+        case 'subject' :
           $replace = "<p><input name='subject' size='65' value=" . '"'. $page->targetSubject . '"' . " </p>";
           break ;
 
-        case '%body' :
+        case 'body' :
           $replace = "<p><textarea name='body' rows='15'>{$this->replaceParagraphTagsWithNewlines($page->targetBody)}</textarea><p>";
           break ;
 
-        case '%name' :
-          $replace = Ecampaign::renderField('visitorName', 'Name', 'mandatory');
+
+        case 'email' :
+          $replace = Ecampaign::renderField('visitorEmail', __('Email'), 25, 4, 'validateEmail');
           break ;
 
-        case '%address1' :
-          $replace = Ecampaign::renderField('address1', 'Address 1', 'mandatory');
-          break ;
-
-        case '%address2' :
-          $replace = Ecampaign::renderField('address2', 'Address 2', 'mandatory');
-          break ;
-
-        case '%postcode' :
-          $replace = Ecampaign::renderField('postcode', 'Postcode',  'mandatory');
-          break ;
-
-        case '%country' :
-          $replace = Ecampaign::renderField('country', 'Country',    'mandatory');
-          break ;
-
-        case '%email' :
-          $replace = Ecampaign::renderField('visitorEmail', 'Email', 'mandatory validateEmail');
-          break ;
-
-        case '%checkbox1' :
+        case 'checkbox1' :
           if (empty($options->checkbox1Text))
             continue ;
          $replace = Ecampaign::renderCheckBox('checkbox1', $options->checkbox1Text, '');
           break ;
 
-        case '%checkbox2' :
+        case 'checkbox2' :
           if (empty($options->checkbox2Text))
             continue ;
          $replace = Ecampaign::renderCheckBox('checkbox2', $options->checkbox2Text, '');
          break ;
 
-        case '%campaignEmail' :
+        case 'campaignEmail' :
           $replace = $campaignEmailBrokenUp ;
           break ;
 
-        case '%send' :
+        case 'send' :
           $nonce = wp_create_nonce('ecampaign');
           $campaignEmailHidden =  Ecampaign::hideEmail($page->campaignEmail);  // hide @
           $recipientsHidden = Ecampaign::hideEmail($options->testMode ? $options->campaignEmail : $page->targetEmail); // hide @
@@ -240,16 +238,29 @@ EOT;
         <input type='hidden' name='_ajax_nonce'  value={$nonce} />
         <input type='hidden' name='action'  value='ecampaign_post'/>
         <input type='hidden' name='ecampaign_action'  value='sendToTarget'/>
-
+        <input type='hidden' name='referer'  value='{$_SERVER["HTTP_REFERER"]}'/>
         <div class='clear fixedLong'><input type='button' name='send-to-target' value='Send email'
         onclick='return ecam.onClickSubmit(this, ecam.targetCallBack);'/></div>
         <div id='status' class='float'></div>" ;
 
           break ;
 
+        case 'name' :
+          $match = 'visitorName';
+          // intentionally fall through
+
+        default :
+          $fieldset = $fieldsets[$match];
+          if (isset($fieldset))
+          {
+            $max = empty($max) ? $fieldset[1] : $max;
+            $min = empty($min) ? $fieldset[2] : $min;
+            $replace = Ecampaign::renderField($match, $fieldset[0], $max, $min, $fieldset[3]);
+          }
+          break ;
       }
       if (isset($replace))
-      $layout = preg_replace("/$match/", $replace, $layout, 1);
+        $layout = preg_replace("/$wholeMatch/", $replace, $layout, 1);
     }
 
     $html = "
@@ -337,7 +348,8 @@ EOT;
   function sendToTarget()
   {
     $field = null ;
-    Ecampaign::fetchEscapedPostedFields($field,array('subject', 'body', 'address1', 'address2', 'postcode', 'country', 'checkbox1', 'checkbox2'));
+    Ecampaign::fetchEscapedPostedFields($field,array('subject', 'body', 'address1', 'address2',
+    'city', 'postcode', 'state', 'zipcode', 'country', 'checkbox1', 'checkbox2'));
 
     Ecampaign::fetchCheckedPostedFields($field,array('visitorName', 'visitorEmail', 'targetEmail', 'campaignEmail'));
 
@@ -352,6 +364,8 @@ EOT;
     $mailer->From = $field->visitorEmail;
     $mailer->FromName = $field->visitorName;
     $mailer->AddBCC($field->visitorEmail);       // copy of email for site visitor
+    // add the originating URL so abuse can be tracked back to specific web page
+    $mailer->addCustomHeader("X-ecampaign-URL: {$_SERVER["HTTP_REFERER"]}");
 
     foreach ($recipients as $recipient)
     {
@@ -369,14 +383,14 @@ EOT;
 
     $mailer->Body = Ecampaign::assemblePlainMsg(array(html_entity_decode($field->body, ENT_QUOTES),
       $field->visitorName,
-      $field->address1,$field->address2,$field->postcode,$field->country,
+      $field->address1,$field->address2,$field->city,$field->postcode,"{$field->state} {$field->zipcode}",$field->country,
       $field->references));
 
     $success = $mailer->Send();
 
     if (!$success)
     {
-      throw new Exception("unable to send email to {$recipientString}, {$mailer->ErrorInfo}");
+      throw new Exception(__("unable to send email to") . " {$recipientString}, {$mailer->ErrorInfo}");
     }
     // forward a similar version of the email to the campaign but add the checkfields that they have clicked
 
@@ -390,8 +404,8 @@ EOT;
     $mailer->Body = Ecampaign::assemblePlainMsg(array(
                        "to:         $recipientString",
                        "from:       $field->visitorEmail $field->visitorName",
-                       "referer:    ${$_SERVER['HTTP_REFERER']}",
-                       "remote:     ${$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
+                       "referer:    {$_POST['referer']}",  // from hidden field but potential inj?
+                       "remote:     {$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
                        "checkbox1:  $ch1  $options->checkbox1Text",
                        "checkbox2:  $ch2  $options->checkbox2Text",
                        " ",
@@ -400,7 +414,7 @@ EOT;
     $success = $mailer->Send();
 
     if (!$success)
-      throw new Exception("unable to cc email to {$field->campaignEmail}, {$mailer->ErrorInfo}");
+      throw new Exception(__("unable to cc email to"). " {$field->campaignEmail}, {$mailer->ErrorInfo}");
 
     return $this->options->thankYouText ;
   }
@@ -451,18 +465,26 @@ EOT;
         $numSuccess++ ;
       }
     }
-    return "Your email has been sent to $numSuccess friend(s). Thank you. ";
+    return sprintf(_n("Your email has been sent to %d friend. Thank you.", "Your email has been sent to %d friends. Thank you.", $numSuccess), $numSuccess);
   }
 
-  static function renderField($name, $label, $class)
+  static function renderStateField($class)
   {
-    $replace = "<p><label class='clear fixedShort' for='$name' >$label</label><input type='text' name='$name' id='$name' class='$class field'/></p>";
+    return Ecampaign::renderField("state", "State", $class);
+  }
+
+  static function renderField($name, $label, $max=40, $min=0, $class)
+  {
+    if ($min > 0)
+      $class .= ' mandatory' ;
+    // note that the value of id e.g. 'City' is expected to be translated to local language
+    $replace = "<p><label class='clear fixedShort' for='$name' >$label</label><input type='text' name='$name' id='$label' size='$max' class='$class'/></p>";
     return $replace ;
   }
 
   static function renderCheckBox($name, $label, $class)
   {
-    $replace = "<p><input type='checkbox' name='$name' id='$name' class='$class'/><label for='$name'>$label</label></p>";
+    $replace = "<p><input type='checkbox' name='$name' id='$label' class='$class'/><label for='$name'>$label</label></p>";
     return $replace ;
   }
 
@@ -471,7 +493,7 @@ EOT;
    */
   static function renderFieldNotUsed($name, $label, $class)
   {
-    $replace = "<p><input type='$type' name='$name' class='clear field $class' onkeydown='ecam.removeLabel(this);' />
+    $replace = "<p><input type='$type' name='$name' size='$max' class='clear field $class' onkeydown='ecam.removeLabel(this);' />
     <label class='label' for='$name'>$label</label></p>";
 
     return $replace ;
@@ -535,9 +557,9 @@ EOT;
   static function assertNoControlChars($field, $fieldName="")
   {
     if (strlen($field) < 2)
-      throw new Exception("Too few characters in $fieldName: $field");
+      throw new Exception(__("Too few characters in") . " $fieldName: $field");
     if (preg_match("$[\\r\\n\\t]$", $field))
-      throw new Exception("Invalid character in $fieldName: $field");
+      throw new Exception(__("Invalid character in") . " $fieldName: $field");
     return ($field);
   }
 
@@ -646,10 +668,10 @@ EOT;
     //check for all the non-printable codes in the standard ASCII set,
     //including null bytes and newlines, and return false immediately if any are found.
     if (preg_match("/[\\000-\\037]/",$email)) {
-      throw new Exception("invalid email address, control characters present : {$recipient}");
+      throw new Exception(__("invalid email address, control characters present"). " : {$recipient}");
     }
     if (!filter_var($recipient, FILTER_VALIDATE_EMAIL))
-      throw new Exception("invalid email address : {$recipient}");
+      throw new Exception(__("invalid email address")." : {$recipient}");
 
     // Make sure the domain exists with a DNS check (if enabled in options)
     // MX records are not mandatory for email delivery, this is why this function also checks A and CNAME records.
@@ -662,7 +684,7 @@ EOT;
         !checkdnsrr($domain.'.', 'A') &&
         !checkdnsrr($domain.'.', 'CNAME')) {
           // domain not found in DNS
-          throw new Exception("unknown domain : {$recipient}");
+          throw new Exception(__("unknown domain"). " : {$recipient}");
         }
       }
     }

@@ -54,21 +54,22 @@ ecam.onClickSubmit = function (buttonElement, callBack)
     }
   }
 
-  fields = formRoot.find(".validateEmail");
-  var pattern = new RegExp(/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
+  // http://msdn.microsoft.com/en-us/library/ff650303.aspx  US Postcode
 
-  for (i=0 ; i < fields.length ; i++)
-  {
-    field = fields.eq(i) ;
-    if (field.val().length == 0)
-      continue ;
-    if (!pattern.test(field.val()))
-    {
-      field.focus() ;
-      ecam.updateStatus(status,false, field.attr('name') + ": invalid email address " + field.val());
-      return false ;
-    }
-  }
+  fields = formRoot.find(".validateZipcode");
+  var pass = ecam.validateField(fields, "invalid", /^(\d{5}-\d{4}|\d{5}|\d{9})$|^([a-zA-Z]\d[a-zA-Z] \d[a-zA-Z]\d)$/);
+  if (!pass)  return false;
+
+  // http://en.wikipedia.org/wiki/UK_postcodes
+  
+  fields = formRoot.find(".validatePostcode");
+  var pass = ecam.validateField(fields, "invalid", /^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$/);
+  if (!pass)  return false;     
+  
+  fields = formRoot.find(".validateEmail");
+  var pass = ecam.validateField(fields, "invalid", /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
+  if (!pass)  return false;
+
   // when the user sends email to the target or to his friends, all the fields are 
   // picked up from formRoot. However when sending to his friends, his  
   // visitorName and visitorEmail have to be picked up from the ecampaign-action form, 
@@ -109,6 +110,32 @@ ecam.onClickSubmit = function (buttonElement, callBack)
   });
   return false; // suppress any other action
 }
+
+/**
+ * validateField against regular expression
+ */
+
+ecam.validateField = function(fields, errorText, patternText)
+{
+  var pattern = new RegExp(patternText);
+  for (i=0 ; i < fields.length ; i++)
+  {
+    field = fields.eq(i) ;
+    if (field.val().length == 0)
+      continue ;
+    
+    if (!pattern.test(field.val().toUpperCase()))
+    {
+      field.focus() ;
+      ecam.updateStatus(status,false, field.attr('id') + " : " + errorText + " : " + field.val());
+      return false ;
+    }
+  }
+  return true ;
+}
+
+
+
 
 /**
  * update status which is normally written next to the send button
