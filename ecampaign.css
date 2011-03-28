@@ -1,66 +1,120 @@
+/** ecampaign css
+ *
+ * It may be necessary to edit, replace or remove this file depending on your theme. 
+ **/
 
-.ajaxform {
-	background-color:#DFD; 
-  padding: 10px
+.ecform {
+  clear: both;
+  background-color: #F4F4F4; 
+  padding: 10px;
+  overflow : hidden;
 }
 
-.smaller  {
+/** basic padding around components */
+
+.ecform .ecfield,  .ecform .ecsend,  .ecform .ecstatus, .ecform #text-guidance, .ecform #text-contact {
+  padding: 4px 0px;
+}
+
+
+.ecform .ecfield, .ecform .ecsend,  .ecform #text-guidance, .ecform #text-contact
+{
+  clear: both ;
+  float: left ;
+}
+
+/* let status creep up alongside the send button */
+
+.ecform .ecstatus, .ecform label 
+{
+  float: left ;
+}
+
+#ec-target label, #ec-target .ecsend  
+{
+  min-width: 80px;  
+}
+
+#ec-friends label, #ec-friends .ecsend  
+{
+  min-width: 150px;
+}
+
+/* float input otherwise it go right */
+
+#ec-target input[type=checkbox] {
+  float: left; 
+}
+
+
+.ecform #text-test-mode, .ecform #text-contact  
+{  
   font-size: x-small ;
-  color: grey ;
 }
 
-.smaller a, a.smaller {
+.ecform .ecform #text-guidance, #text-contact
+{
+  clear:both;
+}
+
+.ecform #text-contact {
+  padding: 2px 0px;
+}
+
+.ecform a {
   font-size: x-small ;
   font-style: italic ;
   text-decoration:none;
 }
 
-.advisory {
-  font-size: x-small ;
-	padding: 15px 0px;
-}
-
-
-.fixedShort {
-  float:left;
-  min-width: 80px;
-}
-
-.fixedLong {
-  float:left;
-  min-width: 150px;
-}
-
-
-.field {
-	 width : 200px ;
-}
-
-.shifted-label {
+/*
+.ecform .shifted-label {
   position : relative ;
   right  :  195px ; 
   z-index : 1 ;
   color : grey ;
   opacity : 1 ;
 }
+*/
 
-
-.float
+#ec-friends #ec-friends-list div  
 {
-  float:left;
+  padding: 0px 0 0px 0 ;   
 }
 
 
-.clear {
+#ec-friends #ec-add-friend  
+{
   clear:both;
+  padding: 0px 0 0px 0 ;   
 }
 
-.hidden {
+
+#ec-friends.hidden {
   display:none ;
 }
 
-.first, .subsequent
+/** put error messages in a different colour */
+
+.ecform .ecOk
 {
-  padding 5px 0 5px 0 ;
+  color : blue ;
 }
 
+.ecform .ecError
+{
+  color : red ;
+}
+
+.ecform #text-sent-1
+{
+  font-weight: bolder;
+}
+
+/** widen the first column in the settings 
+    page to make room for all the help text */
+
+#ec-settings th
+{
+  width : 250px ; 
+}
