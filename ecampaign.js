@@ -26,7 +26,7 @@ ecam.onClickSubmit = function (buttonElement, callBack)
   }
   var button = jQuery(buttonElement);
   // find the root of the form
-  var formRoot = button.parents('form, .ajaxform');
+  var formRoot = button.parents('form, .ecform');
   if (formRoot.length == 0)
   {
     alert('onClickSubmit(): no form wrapper');
@@ -34,7 +34,7 @@ ecam.onClickSubmit = function (buttonElement, callBack)
   }
 
   // find the element used to hold status messages
-  var status = formRoot.find('#status');
+  var status = formRoot.find('.ecstatus');
   if (status.length == 0)
   {
     alert('onClickSubmit(): status element not declared');
@@ -49,7 +49,7 @@ ecam.onClickSubmit = function (buttonElement, callBack)
     if (field.val().length < 2)
     {
       field.focus() ;
-      ecam.updateStatus(status,false, field.attr('name') + ": mandatory field " + field.val());
+      ecam.updateStatus(status,false, "Very short " + field.attr('id') + " " + field.val());
       return false ;
     }
   }
@@ -57,17 +57,17 @@ ecam.onClickSubmit = function (buttonElement, callBack)
   // http://msdn.microsoft.com/en-us/library/ff650303.aspx  US Postcode
 
   fields = formRoot.find(".validateZipcode");
-  var pass = ecam.validateField(fields, "invalid", /^(\d{5}-\d{4}|\d{5}|\d{9})$|^([a-zA-Z]\d[a-zA-Z] \d[a-zA-Z]\d)$/);
+  var pass = ecam.validateField(fields, status, "invalid", /^(\d{5}-\d{4}|\d{5}|\d{9})$|^([a-zA-Z]\d[a-zA-Z] \d[a-zA-Z]\d)$/);
   if (!pass)  return false;
 
   // http://en.wikipedia.org/wiki/UK_postcodes
   
   fields = formRoot.find(".validatePostcode");
-  var pass = ecam.validateField(fields, "invalid", /^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$/);
+  var pass = ecam.validateField(fields, status, "invalid", /^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$/);
   if (!pass)  return false;     
   
   fields = formRoot.find(".validateEmail");
-  var pass = ecam.validateField(fields, "invalid", /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
+  var pass = ecam.validateField(fields, status, "invalid", /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
   if (!pass)  return false;
 
   // when the user sends email to the target or to his friends, all the fields are 
@@ -89,11 +89,12 @@ ecam.onClickSubmit = function (buttonElement, callBack)
     error:    function(httpRequest, textStatus, errorThrown)
     {
       if (httpRequest.status != undefined)  
-        if (httpRequest.status > 0)  
+        if (httpRequest.status != 200)   
       {
         ecam.updateStatus(status, false, httpRequest.status + " " + httpRequest.statusText);
         return ;
       }
+      // Server may be returning xml/html but not in JSON, e.g. stack dump
       ecam.updateStatus(status, false, textStatus + " " + errorThrown) ;
     },
     success:  function(response, textStatus, httpRequest)
@@ -115,7 +116,7 @@ ecam.onClickSubmit = function (buttonElement, callBack)
  * validateField against regular expression
  */
 
-ecam.validateField = function(fields, errorText, patternText)
+ecam.validateField = function(fields, status, errorText, patternText)
 {
   var pattern = new RegExp(patternText);
   for (i=0 ; i < fields.length ; i++)
@@ -127,7 +128,7 @@ ecam.validateField = function(fields, errorText, patternText)
     if (!pattern.test(field.val().toUpperCase()))
     {
       field.focus() ;
-      ecam.updateStatus(status,false, field.attr('id') + " : " + errorText + " : " + field.val());
+      ecam.updateStatus(status,false, errorText + " " + field.attr("id") + " : " + field.val());
       return false ;
     }
   }
@@ -148,9 +149,9 @@ ecam.updateStatus = function(status, success, msg)
     alert(msg);  return success ;  // fallback to alerts
   }
   if (success)
-    status.empty().append('div').css('color', 'blue').html(msg);
+    status.empty().append('div').removeClass('ecError').addClass('ecOk').html(msg);
   else
-    status.empty().append('div').css('color', 'red').html(msg);
+    status.empty().append('div').removeClass('ecOk').addClass('ecError').html(msg);
 }
 
 /**
@@ -166,7 +167,7 @@ ecam.targetCallBack = function (success, button)
   button.attr("disabled","disabled");
   
   // display send to friends block
-  jQuery('#ecampaign-friends').show();
+  jQuery('#ec-friends').show();
 }
 
 
@@ -182,8 +183,8 @@ ecam.targetCallBack = function (success, button)
 
 ecam.friendsCallBack = function(success, button)
 {
-//  jQuery('#friendsList .first').find('input').attr('value',''); // blank field
-//  jQuery('#friendsList .subsequent').remove();
+//  jQuery('#ec-friendsList .first').find('input').attr('value',''); // blank field
+//  jQuery('#ec-friends-list .subsequent').remove();
 }
 
 
@@ -194,16 +195,24 @@ ecam.friendsCallBack = function(success, button)
  * don't seem to be able to clone 
  */
 
-
 ecam.addFriend = function() 
 {
-  var subsequentFriend = jQuery('#friendsList .first').clone().removeClass('first').addClass('subsequent')
-      .appendTo(jQuery('#friendsList'));
+  var subsequentFriend = jQuery('#ec-friends-list .first')
+      .clone(true)
+      .removeClass('first').addClass('subsequent')
+      .eq(0)         // don't understand why needed
+      .appendTo(jQuery('#ec-friends-list'));
 
-  input = subsequentFriend
-      .contents('input')
-      .attr('name','emailfriend' + (1+subsequentFriend.siblings().length)).attr('value','')
-      .after("<a href='#' class='smaller float' onclick='return ecam.removeFriend(this)'>remove</a>");
+  var numChild = jQuery('#ec-friends-list').children('div').length ;
+
+  var forr = subsequentFriend
+      .children('label')
+      .attr('for','emailfriend' + numChild);
+
+  var input = subsequentFriend
+      .children('input')
+      .attr('name','emailfriend' + numChild).attr('value','')
+      .after("<a href='#' class='smaller float' onclick='return ecam.removeFriend(this);'>remove</a>");
 
   return false  ;
 }
@@ -227,6 +236,3 @@ ecam.removeLabel = function(inputElement)
   
   return false;
 }
-
-
-
