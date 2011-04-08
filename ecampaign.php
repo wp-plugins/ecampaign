@@ -3,7 +3,7 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.74
+ Version: 0.75
  Author: John Ackers
  Author URI: john.ackers ymail.com
 
@@ -45,13 +45,17 @@ function ecampaign_short_code($atts, $body) {
  * @return unknown_type
  */
 
-function ecampaign_post() {
+function ecampaign_ajax_post() {
   include_once dirname(__FILE__) . '/ecampaign.class.php';  // load only for posts
   if ($ecampaign == null)
     $ecampaign = new Ecampaign();
   return $ecampaign->ajaxPost();
 }
 
+/**
+ * Runs on every page, perhaps this can be avoided
+ * @return unknown_type
+ */
 
 function ecampaign_load() {
   wp_enqueue_style('ecampaign-style', plugin_dir_url( __FILE__ ) . 'ecampaign.css');
@@ -88,10 +92,13 @@ register_uninstall_hook(__FILE__, 'ecampaign_unset_options');
 
 if (is_admin())
 {
-  add_action('wp_ajax_ecampaign_post', 'ecampaign_post');
+  add_action('wp_ajax_ec_sendToTarget',        'ecampaign_ajax_post');
+  add_action('wp_ajax_ec_sendToFriend',        'ecampaign_ajax_post');
+
+  add_action('wp_ajax_nopriv_ec_sendToTarget', 'ecampaign_ajax_post');
+  add_action('wp_ajax_nopriv_ec_sendToFriend', 'ecampaign_ajax_post');
 
   add_action('admin_menu', 'ecampaign_menu');
-  add_action('wp_ajax_nopriv_ecampaign_post', 'ecampaign_post');
 }
 else
 {
@@ -106,7 +113,8 @@ else
 
 function ecampaign_menu() {
 
-  include_once dirname(__FILE__) . '/ecampaign.class.php';  // load only for pages using shortcode
+//  include_once dirname(__FILE__) . '/ecampaign-admin.php';  // load only for admin pages
+  include_once dirname(__FILE__) . '/ecampaign.class.php';  //
   add_options_page('Ecampaign Options', 'Ecampaign', 'manage_options', 'ecampaign', 'ecampaign_options');
 
   //call register settings function
@@ -134,7 +142,7 @@ function ecampaign_registerOptions()
   register_setting( 'ec-settings', 'ec_friendsLayout' );
   register_setting( 'ec-settings', 'ec_testMode' );
   register_setting( 'ec-settings', 'ec_mailer' );
-  register_setting( 'ec-settings', 'ec_checkdnsrr' );
+  register_setting( 'ec-settings', 'ec_captchadir' );
 }
 
 
@@ -184,27 +192,34 @@ function ecampaign_options()
 
   ecampaign_add_option('ec_layout',
 
-  __("<p>Form template. Add and remove fields that you want to collect. Valid fields are: ") .
+  __("<p>Target Form template. Add and remove fields that you want to collect. Valid fields are: ") .
      "%to %subject %body %name %address1 %address2 %address3 %city %ukpostcode %postcode %zipcode %state %country " .
-     "%email %send %checkbox1 %checkbox2. </p><p>" .
+     "%email %send %checkbox1 %checkbox2 %verificationCode %captcha %counter. </p><p>" .
+  __("Use %captcha to include a standard captcha mechanism in the form. </p><p>").
+  __("Use %verificationCode to send an email to the site visitor's email address containing a verification code. It should
+  not be necessary to deploy both captcha and verificationCode on the same site.</p><p>").
   __("Adjust size of body field using %44.55body where 44 represents number of columns and 55 represents number of rows. ").
-  __("Adjust size of other fields using %33.10city where 33 represents field size and 10 is minimum number of characters required.").
+  __("Adjust size of other fields using %33.10city where 33 represents field size and 10 is minimum number of characters required. ").
+  __("Use %.0 to make a field optional e.g. %.0city .").
     "<p/><p>".
-  __("You may have to tweak the style sheet if you make significant changes.</p>"),
+  __("You may have to tweak the style sheet ecampaign.css if you make significant changes.</p>"),
   '%to
   %subject
   %body
-     <div id="text-guidance">'
-  . __("Your name and address as entered below will be added. Do not sign your name above. ")
-  . __("All fields are needed.")
+    <div id="text-guidance">'
+  . __("Your name and address as entered below will be added. Yoo do not sign your name above. ")
   .  '</div>
   %name
   %zipcode
   %email
+  %verificationCode
+  %captcha
   %checkbox1
   %checkbox2
   %send
-     <div id = "text-contact">'. __("Please contact %campaignEmail if you have any difficulties or queries"). '</div>',
+  <div id = "text-contact">'.
+  __("%counter people have taken part in this action. ").
+  __("Please contact %campaignEmail if you have any difficulties or queries. "). '</div>',
   $keys, 'no');
 
   ecampaign_add_option('ec_checkbox1',
@@ -226,10 +241,12 @@ function ecampaign_options()
 
   ecampaign_add_option('ec_friendsLayout',
   "<p>".
-   __("Friends form template. Add and remove fields that you want to collect. Valid fields are:").
-      "%friendSubject %friendBody %friendEmail %friendSend." .
-   __("Adjust field length the same as for Form layout above. ").
-   __("You have to include the %send button somewhere in the form.</p>"),
+   __("Friends Form template. Add and remove fields that you want to collect. Valid fields are:").
+      "%friendSubject %friendBody %friendEmail %friendSend. " .
+   __("%verificationCode %captcha are not supported in this form. To prevent abuse of this
+   form, %verificationCode or %captcha should be included in the Target Form template above. ").
+   __("Adjust field length the same as for Form template above. ").
+   __("You have to include the %friendSend button somewhere in the form.</p>"),
   '<h3 id="text-friends">' . __('What about telling your friends?') . '</h3>
    %friendSubject
    %friendBody
@@ -243,6 +260,15 @@ function ecampaign_options()
   ecampaign_add_option('ec_checkdnsrr',
   __("Enable checking DNS records for the domain name when checking for a valid E-mail address. "), 'yes', $keys, 'no');
 
+  $captchaPresent = file_exists(WP_PLUGIN_DIR . get_option('ec_captchadir') . '/securimage.php') ;
+
+  ecampaign_add_option('ec_captchadir',
+  __("Location of optional CAPTCHA library in plugins directory").
+  " <a href='http://www.phpcaptcha.org/'>securimage</a>.  ".
+  ($captchaPresent ? __("Library is present.") : __("Library is not present."))
+  , '/ecampaign/securimage', $keys, 'no');
+
+  ec_captchadir
 ?>
 <div class="wrap">
 <h2>Ecampaign settings</h2>
@@ -265,8 +291,8 @@ function ecampaign_options()
         <th scope="row" colspan="2"><?php echo $prompt["ec_layout"] ?></th>
         </tr>
         <tr valign="top">
-        <td>default:<br/><textarea name="ec_91" rows='16' cols='35' readonly='yes'><?php echo  $default['ec_layout']; ?></textarea></td>
-        <td>current:<br/><textarea name="ec_layout" rows='16' cols='35'><?php echo get_option('ec_layout'); ?></textarea></td>
+        <td>default:<br/><textarea name="ec_91" rows='20' cols='35' readonly='readonly'><?php echo  $default['ec_layout']; ?></textarea></td>
+        <td>current:<br/><textarea name="ec_layout" rows='20' cols='35'><?php echo get_option('ec_layout'); ?></textarea></td>
         </tr>
 
         <tr valign="top">
@@ -301,10 +327,14 @@ function ecampaign_options()
         <td><input type="text" name="ec_mailer" size=10 value="<?php echo get_option('ec_mailer'); ?>" /></td>
         </tr>
 
-
         <tr valign="top">
         <th scope="row"><?php echo $prompt["ec_checkdnsrr"] ?> </th>
         <td><input type="checkbox" name="ec_checkdnsrr" value='1' <?php checked(get_option('ec_checkdnsrr'), 1); ?> /></td>
+        </tr>
+
+        <tr valign="top">
+        <th scope="row"><?php echo $prompt["ec_captchadir"] ?></th>
+        <td><input type="text" name="ec_captchadir" size=40 value="<?php echo get_option('ec_captchadir'); ?>" /></td>
         </tr>
 
     </table>

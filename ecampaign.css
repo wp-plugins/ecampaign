@@ -25,12 +25,12 @@
 
 /* let status creep up alongside the send button */
 
-.ecform .ecstatus, .ecform label 
+.ecform .ecstatus, .ecform label, .ecform .ecfield, .ecform .ecinputwrap   
 {
   float: left ;
 }
 
-#ec-target label, #ec-target .ecsend  
+#ec-target .ecfield label, #ec-target .ecsend  
 {
   min-width: 80px;  
 }
@@ -47,8 +47,9 @@
 }
 
 
-.ecform #text-test-mode, .ecform #text-contact  
+.ecform #text-test-mode, .ecform #text-counter, .ecform #text-contact  
 {  
+	clear: both ;
   font-size: x-small ;
 }
 
@@ -77,7 +78,7 @@
 }
 */
 
-#ec-friends #ec-friends-list div  
+#ec-friends #ec-friends-list .ecfield 
 {
   padding: 0px 0 0px 0 ;   
 }
@@ -90,7 +91,8 @@
 }
 
 
-#ec-friends.hidden {
+#ec-friends.hidden, .eccode.hidden 
+{
   display:none ;
 }
 

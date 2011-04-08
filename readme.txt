@@ -15,7 +15,7 @@ This plugin allows a campaign action to be embedded into any wordpress page
 or post. The sequence of events is:
 
 1. The site visitor is presented with a prepared email.
-2. The visitor adds their name, email address, postal address etc. and can customize 
+2. The visitor adds their name, email address, postal address etc. and can or may be required to customize 
 the text of the email.
 3. The visitor clicks on 'Send email'.
 4. The email is sent to the target email address(s) and copied to the visitor's address. 
@@ -25,30 +25,32 @@ of the checked boxes is sent to the campaign email address.
 to one or more friends.
 7. The visitor adds email addresses and clicks on 'Send email to friends'. 
 
+= Features =
+
+* Apart from the plugin options and one counter, no data is stored in the wordpress database. 
+* Optional CAPTCHA support using http://www.phpcaptcha.org/.
+* Email addresses, zipcodes and UK postcodes are validated.
+* Optional verification of site visitor's email address.
+* Site visitor can be required to edit message, by removing optional guidance notes, before sending.
+* When enabled, a simple test mode diverts emails from the target address to the campaign email address.
+* There is only one block of content embedded into one page and user interaction is via AJAX.
+* All available error messages are passed back to the visitor.
+* Fields can be added/removed/rearranged and size changed.  
+* Appearance customizable via CSS.
+* Email addresses displayed are antispammed.
+* I18n language translation support for server side messages.
+
 
 = Configurable Options = 
 
 The site administrator can:
 
 * change the campaign email address.
-* change the size of the message area.
 * change which fields appear in the form and their size.
+* change the size of the message area.
 * enable 1 or 2 additional checkboxes (e.g. to prompt the visitor for 
 further campaign updates).
 * enable DNS checking of email addresses.
-
-= Features =
-
-* Apart from the plugin options, for good or bad, no data is stored in the wordpress database. 
-* A simple test mode that diverts emails from the target address to the campaign email address.
-* There is only one block of content embedded into one page and user interaction is via AJAX.
-* Fields can be added/removed/rearranged and size changed. 
-* Email addresses, zipcodes and UK postcodes are validated.
-* Appearance customizable via CSS.
-* Site visitor can be required to edit message, by removing optional guidance notes, before sending.
-* All available error messages are passed back to the visitor.
-* Email addresses displayed are antispammed.
-* I18n language translation support for server side messages.
 
 
 == Installation ==
@@ -58,10 +60,16 @@ further campaign updates).
 3. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
 4. Create a page that contains [ecampaign] and [/ecampaign] tags, see Setting up a campaign action
 5. View that page. The supplied style sheet works for the Atahualpa theme. 
-For other themes you may need to change the padding and the fonts etc. If the default layout doesn't
-match the screen shots, check the layout in Ecampaign settings especially after upgrades. 
+For other themes you may need to change the padding and the fonts etc. If the default template doesn't
+match the screen shots, check the template in Ecampaign settings especially after upgrades. 
 
 PHP5 is required. There are no dependencies. filter_vars() from PHP5.2+ is used if available.
+
+If you want to use CAPTCHA, download securimage from http://www.phpcaptcha.org/
+and install somewehere under the plugins directory and change the ecampaign 
+settings to match that location. The default location is under the ecampaign directory. 
+Versions of securimage that have been tested with ecampaign are 2.0 beta 
+and 1.02 packaged with si-contact-form. 
 
 Anyone that is able to create/edit pages can create new campaign actions by creating 
 a new post or page and embedding the default text of the email along with the 
@@ -77,6 +85,11 @@ If you are using the SMTP transport option offered by PHPMailer, the
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
 
+= Upgrading from 0.74 = 
+
+You have to include %verificationCode or %captcha in the Target Form template to 
+enable email verification or captcha protection.
+
 = Upgrading from 0.73 = 
 
 The default form template in 0.73 did not show the body of the message.
@@ -91,16 +104,24 @@ None yet.
 
 == Screenshots ==
 
-1. screenshot-1.png - upper block showing the email succesfully sent to target
-2. screenshot-2.png - lower block made visible when email succesfully sent to target
+1. screenshot-1.png - upper form (version 0.73) showing the email succesfully sent to target
+2. screenshot-2.png - lower form (version 0.73) made visible when email succesfully sent to target
+3. screenshot-3.png - upper form (version 0.75) showing the optional email verification field and the CAPTCHA fields
+4. screenshot-4.png - none
+4. screenshot-5.png - ecampaign settings screen, upper half
+5. screenshot-6.png - ecampaign settings screen, lower half
 
 == Changelog ==
 
+= 0.75 =
+* CAPTCHA functionality added.
+* email verification added.
+
 = 0.74 =
 * %body not shown in default template in 0.73, bug fixed. 
-* Site visitor can be required to change text of message before sending
-* The size/width of each field can be specified in layout, see settings page
-* The minimum number of chars keyed into each field can be specified in layout
+* Site visitor can be required to change text of message before sending.
+* The size/width of each field can be specified in the templates, see settings page.
+* The minimum number of chars keyed into each field can be specified in the templates.
 * The CSS has been much simplified.
 * Option variables now prefixed by ec-.  Old variables imported and deleted once.
 * Outgoing messages word wrapped at 76 chars.
@@ -125,8 +146,11 @@ None yet.
 
 == Upgrade Notice ==
 
+= 0.75 =
+* Upgrade recommended if ecampaign is installed but not being used in production.
+
 = 0.74 =
-* Upgrade recommended if ecampaign is live but not being used.
+* Upgrade recommended if ecampaign is installed but not being used in production.
 
 = 0.73 =
 * Small enhancements and some bug fixes, upgrade optional.
@@ -174,10 +198,14 @@ New lines are not permitted inside the [ecampaign  ] shortcode.
 
 == Known restrictions, deficiencies and inflexibilty == 
 
+* The site visitor has to have javascript enabled in their browser. There is no fallback mode.
 * The activist only gets a copy of their email. There is no thank you email.
 * The format of the email sent to campaignEmail is fixed.
-* All fields included in the form layout are mandatory. 
-* There is currently no CAPTCHA or Akismet protection but it can be added.
-* The visitor's email address is not verified by sending an email.
-* Some error messages in js are not easily translated.
+* There is currently no Akismet protection but it could be added.
+* Some error messages in the javascript are not easily translated.
+* Emails sent to verify email addresses contain 4 digit codes which have to be retyped, it is 
+not possible to simply click on a link in the email (which is usually offered).
+* The verify code in the email must be entered and submitted before the captcha code because 
+the captcha code can only be checked once, subsequent attempts will fail.  Not that ecampaign
+itself does not start a session. However the securimage (captcha) does start a session.
 

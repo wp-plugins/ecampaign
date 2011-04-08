@@ -9,6 +9,8 @@ tag embedded in wordpress post or page.
 
 requires PHP version > 5.0
 
+todo: session variables, mandatory fields, error messages under fields, define fields, screen dump of admin page
+
 */
 
 
@@ -89,6 +91,34 @@ EOT;
   }
 
   private $options, $targetFields, $friendsFields ;
+  private static $counter = 'ecCounter';    // counter is saved in metadata in post
+  private static
+    $to = 'to',
+    $from = 'from',
+    $subject = 'subject',
+    $body = 'body',
+    $visitorName = 'visitorName',
+    $visitorEmail = 'visitorEmail',
+    $campaignEmail = 'campaignEmail',
+    $address1 = 'address1',
+    $address2 = 'address2',
+    $address3 = 'address3',
+    $city = 'city',
+    $postcode = 'postcode',
+    $ukpostcode = 'ukpostcode',
+    $zipcode = 'zipcode',
+    $state = 'state',
+    $country = 'country',
+    $checkbox1 = 'checkbox1',
+    $checkbox2 = 'checkbox2',
+    $verificationCode = 'verificationCode',
+    $captcha = 'captcha',
+    $send = 'send',
+
+    $friendSubject = 'friendSubject',
+    $friendBody = 'friendBody',
+    $friendEmail = 'friendEmail',
+    $friendSend = 'friendSend' ;
 
   /**
    * load the options for this plugin. This is the only shared code
@@ -112,6 +142,7 @@ EOT;
     $this->options->mailer                 =  get_option('ec_mailer');
     $this->options->testMode               =  get_option('ec_testMode');
     $this->options->checkdnsrr             =  get_option('ec_checkdnsrr');
+    $this->options->captchadir             =  get_option('ec_captchadir');
 
     $this->targetFields = Ecampaign::parseLayout($this->options->targetLayout);
     $this->friendsFields = Ecampaign::parseLayout($this->options->friendsLayout);
@@ -127,26 +158,28 @@ EOT;
   static function parseLayout($layout)
   {
     $knownFields = array(
+      self::$to           => array(__('To'),        0, 0),    // field lengths irrelevant
+      self::$subject      => array(null,           55, 4),    // cols, minimum cols
+      self::$body         => array(null,           55,10),    // cols, rows
+      self::$visitorName  => array(__('Name'),     15, 4),
+      self::$visitorEmail => array(__('Email'),    25, 4, 'validateEmail'),
+      self::$address1     => array(__('Address 1'),15, 4),    // default width and minimum number of chars
+      self::$address2     => array(__('Address 2'),15, 0),
+      self::$address3     => array(__('Address 3'),15, 0),
+      self::$city         => array(__('City'),     15, 4),
+      self::$postcode     => array(__('Postcode'), 10, 4),
+      self::$ukpostcode   => array(__('Postcode'), 10, 4, 'validateUKPostcode'),
+      self::$zipcode      => array(__('Zipcode'),  10, 5, 'validateZipcode'),
+      self::$state        => array(__('State'),    2,  2),	 // tx, ca
+      self::$country      => array(__('Country'),  15, 2),	 // us, uk
+ self::$verificationCode  => array(__('Code'),     4,  4),
+      self::$captcha      => array(__('Captcha'),  4,  4),
+      self::$send         => array(__('Send'),     0,  0),
 
-      'subject'      => array(null,           55, 4),    // cols, minimum cols
-      'body'         => array(null,           55,10),    // cols, rows
-      'visitorName'  => array(__('Name'),     15, 4),
-      'visitorEmail' => array(__('Email'),    25, 4, 'validateEmail'),
-      'address1'     => array(__('Address 1'),15, 4),    // default width and minimum number of chars
-      'address2'     => array(__('Address 2'),15, 0),
-      'address3'     => array(__('Address 3'),15, 0),
-      'city'         => array(__('City'),     15, 4),
-      'postcode'     => array(__('Postcode'), 10, 4),
-      'ukpostcode'   => array(__('Postcode'), 10, 4, 'validatePostcode'),
-      'zipcode'      => array(__('Zipcode'),  10, 5, 'validateZipcode'),
-      'state'        => array(__('State'),    2,  2),	 // tx, ca
-      'country'      => array(__('Country'),  15, 2),	 // us, uk
-      'send'         => array(__('Send'),     0,  0),
-
-      'friendSubject'=> array(null,           60,20),    // cols, minimum cols
-      'friendBody'   => array(null,                         65, 8),    // cols, rows
-      'friendEmail'  => array(__("Friend's email address") ,25, 4),
-      'friendSend'   => array(__('Send to friends'),        0,  0),
+      self::$friendSubject => array(null,           60,20),    // cols, minimum cols
+      self::$friendBody    => array(null,                         65, 8),    // cols, rows
+      self::$friendEmail   => array(__("Friend's email address") ,25, 0),
+      self::$friendSend    => array(__('Send to friends'),        0,  0),
     );
 
     $allMatchResults = array();
@@ -177,8 +210,8 @@ EOT;
       $workingFields[$match] = (object) $workingField ;
     }
     if (count($workingFields) == 0)
-      die(__("One or more of the templates has 0 fields. Please go to Ecampaign settings 
-      and check that templates exist for the two forms and (re)save them, especially following an 
+      die(__("One or more of the templates has 0 fields. Please go to Ecampaign settings
+      and check that templates exist for the two forms and (re)save them, especially following an
       installation or an upgrade. If that doesn't work, cut and paste default settings."));
     return $workingFields ;
   }
@@ -231,6 +264,9 @@ EOT;
       die(__('ecampaign: page not setup properly')."<p>$errorText</p> <p>{$this->help()}</p>");
     }
 
+    $postid = get_the_ID();
+    add_post_meta($postid, self::$counter, 0);
+
     $options = $this->options ;  // er just being lazy
 
     $campaignEmailBrokenUp = Ecampaign::breakupEmail($page->campaignEmail);
@@ -245,49 +281,76 @@ EOT;
       $replace = '' ;
       switch($match) {
 
-        case 'to' :
+        case self::$to :
           $recipientsBrokenUp = $options->testMode ? $campaignEmailBrokenUp : $targetEmailBrokenUp;
           $settingsUrl =  admin_url("options-general.php?page=ecampaign");
           $helpOutOfTestMode =  $options->testMode ?  "<span id='text-test-mode'>[in test mode <a href='{$settingsUrl}')>change</a>]</span>" : "" ;
-          $replace = "<div class='ecfield'>to: $recipientsBrokenUp $helpOutOfTestMode</div>" ;
+          $replace = "<div ><label id='to'>$field->label:</label> $recipientsBrokenUp $helpOutOfTestMode</div>" ;
           break ;
 
-        case 'subject' :
+        case self::$subject  :
           $replace = Ecampaign::renderField($match, '',
-            $page->targetSubject, $field->max, $field->min, '', $field->class);
+            $page->targetSubject, $field->max, $field->min, 'ecfield', $field->class);
           break ;
 
-        case 'body' :
+        case self::$body :
           $replace = Ecampaign::renderTextArea('body',$this->replaceParagraphTagsWithNewlines($page->targetBody), $field->min, $field->max);
           break ;
 
-        case 'checkbox1' :
+        case self::$checkbox1 :
           if (empty($options->checkbox1Text))
             continue ;
-          $replace = Ecampaign::renderCheckBox('checkbox1', $options->checkbox1Text, '');
+          $replace = Ecampaign::renderCheckBox($match, $options->checkbox1Text, '');
           break ;
 
-        case 'checkbox2' :
+        case self::$checkbox2 :
           if (empty($options->checkbox2Text))
             continue ;
-         $replace = Ecampaign::renderCheckBox('checkbox2', $options->checkbox2Text, '');
+         $replace = Ecampaign::renderCheckBox($match, $options->checkbox2Text, '');
          break ;
 
-        case 'campaignEmail' :
+        case self::$campaignEmail :
           $replace = $campaignEmailBrokenUp ;
           break ;
 
-        case 'send' :
-          $nonce = wp_create_nonce('ecampaign');
+        case self::$captcha :
+          $imageUrl =  WP_PLUGIN_URL . $this->options->captchadir . "/securimage_show.php" ;
+          $replace =
+          "<div class='ecfield'>
+            <label for='captcha' />&nbsp;</label>
+            <img id='ec-captcha' src='{$imageUrl}' alt='#CAPTCHA Image' title='"
+          . __("Type the characters in this image into the box below.") . "' />
+           </div>
+           <div class='ecfield'>
+             <label for='captcha' />{$field->label}&nbsp;*</label>
+             <div class='ecinputwrap'>
+               <input type='text' id ='captcha' name='captcha' size='10' maxlength='6' class='mandatory' />
+               <a href='#'
+                 onclick=\"document.getElementById('ec-captcha').src = '{$imageUrl}?' + Math.random();
+                 return false\">" .  __("Try a different image") . "</a>
+             </div>
+           </div>";
+          break ;
+
+        case self::$verificationCode :
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield eccode hidden', '');
+          break ;
+
+        case 'counter' :
+          $replace = get_post_meta($postid, self::$counter, true);
+          break ;
+
+        case self::$send :
+          $nonce = wp_create_nonce('ec_sendToTarget');
           $campaignEmailHidden =  Ecampaign::hideEmail($page->campaignEmail);  // hide @
           $recipientsHidden = Ecampaign::hideEmail($options->testMode ? $options->campaignEmail : $page->targetEmail); // hide @
           $replace =
        "<input type='hidden' name='targetEmail'    value='{$recipientsHidden}' />
         <input type='hidden' name='campaignEmail'  value='{$campaignEmailHidden}' />
-        <input type='hidden' name='_ajax_nonce'  value={$nonce} />
-        <input type='hidden' name='action'  value='ecampaign_post'/>
-        <input type='hidden' name='ecampaign_action'  value='sendToTarget'/>
+        <input type='hidden' name='_ajax_nonce'  value='{$nonce}' />
+        <input type='hidden' name='action'  value='ec_sendToTarget'/>
         <input type='hidden' name='referer'  value='{$_SERVER["HTTP_REFERER"]}'/>
+        <input type='hidden' name='postid'  value='{$postid}'/>
 
         <div class='ecsend'><input type='button' name='send-to-target' value='{$field->label}'
          onclick='return ecam.onClickSubmit(this, ecam.targetCallBack);'/></div>
@@ -295,7 +358,7 @@ EOT;
           break ;
 
         default :
-          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, '', $field->class);
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield', $field->class);
           break ;
       }
       if (isset($replace))
@@ -314,35 +377,32 @@ EOT;
       $replace = '' ;
       switch($match) {
 
-        case 'friendSubject' :
+        case self::$friendSubject :
           $replace = Ecampaign::renderField($match, '',
-            $page->friendSubject, $field->max, $field->min, '', $field->class);
+            $page->friendSubject, $field->max, $field->min, 'ecfield', $field->class);
           break ;
 
-        case 'friendBody' :
+        case self::$friendBody :
           $scriptUri = "http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
           $replace = Ecampaign::renderTextArea($match,$this->replaceParagraphTagsWithNewlines($page->friendBody)
             . "\n\n" . $scriptUri, $field->min, $field->max);
           break ;
 
-        case 'friendEmail' :
+        case self::$friendEmail :
           $replace = "
               <div id='ec-friends-list'>".
-                  Ecampaign::renderField('emailfriend1', $field->label, '', $field->max, $field->min, 'first', 'validateEmail') .
+                  Ecampaign::renderField('emailfriend1', $field->label, '', $field->max, $field->min, 'ecfield', 'validateEmail') .
              "</div>
               <div id='ec-add-friend'><label>&nbsp;</label><a
               href='#' onclick='return ecam.addFriend()'>" . __("add another") . "</div></a>";
           break ;
 
-        case 'friendSend' :
-          $nonce = wp_create_nonce('ecampaign');
+        case self::$friendSend :
           $campaignEmailHidden =  Ecampaign::hideEmail($page->campaignEmail);  // hide @
 //          $recipientsHidden = Ecampaign::hideEmail($options->testMode ? $options->campaignEmail : $page->targetEmail); // hide @
           $replace =
-       "<input type='hidden' name='_ajax_nonce'  value={$nonce} />
-        <input type='hidden' name='campaignEmail'  value='{$campaignEmailHidden}' />
-        <input type='hidden' name='action'  value='ecampaign_post'/>
-        <input type='hidden' name='ecampaign_action'  value='sendToFriend'/>
+       "<input type='hidden' name='campaignEmail'  value='{$campaignEmailHidden}' />
+        <input type='hidden' name='action'  value='ec_sendToFriend'/>
 
         <div class='ecsend'>
           <input type='button' name='send-to-friends'  value='{$field->label}'
@@ -353,7 +413,7 @@ EOT;
           break ;
 
         default :
-          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, '', $field->class);
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield', $field->class);
           break ;
       }
       if (isset($replace))
@@ -363,7 +423,7 @@ EOT;
     }
 
     $html =
-    "<!-- ecampaign plugin for wordpress John Ackers  -->
+    "<!-- http://www.wordpress.org/plugins/ecampaign  -->
     <div id='ec-target' class='ecform'  >
     $targetLayout
     </div>
@@ -386,26 +446,58 @@ EOT;
   function ajaxPost()
   {
     try {
-      check_ajax_referer("ecampaign");
 
-      $action = $_POST['ecampaign_action'];
+      $action = $_POST['action'];
 
-      if (!in_array($action,array("sendToTarget", "sendToFriend")))
-        throw new Exception("ecampaign_action set to $action which is not valid.");
+      if (!in_array($action,array("ec_sendToTarget", "ec_sendToFriend")))
+        throw new Exception("ecampaign_action set to invalid value : " . $action);
 
-      $result = $this->$action() ;
+      if (false == check_ajax_referer($action, false, false))
+        throw new Exception(__("Request rejected, nonce has unexpected failure."));
+
+      $method = substr($action, 3); // loose the ec_
+      $result = $this->$method() ;
       // convert info text into response block
-      $response = is_array($result) ? $result : array("success"=>true, "msg" => $result);
+      $response = is_array($result) ? $result : array("success"=> true, "msg" => $result);
     }
     catch (Exception $e)
     {
-      $response = array("success"=>false, "msg" => "Error: " . $e->getMessage()) ;
+      $response = array("success" => false, "msg" => "Error: " . $e->getMessage()) ;
     }
     header( "Content-Type: application/json" );
     echo json_encode($response);
     exit ;
   }
 
+  /**
+   * if site options are configured to validate email address send the sitre visitor an
+   * email with a 4 digit code
+   *
+   * @return unknown_type
+   */
+
+  function sendValidationCode($field, $code)
+  {
+    $mailer = Ecampaign::getPhpMailer($this->options);
+    $mailer->Subject = "Verification code for campaign action" ;
+    $mailer->From = $field->campaignEmail ;
+    $mailer->FromName = get_bloginfo("name");
+    $mailer->AddAddress($field->visitorEmail, $field->visitorName);
+
+//    if ($this->options->bccCampaignEmail)
+//      $mailer->AddBCC($field->campaignEmail);    // this isn't really necessary
+
+    $mailer->Body = $field->subject . "\n\n".
+      sprintf(__("Thank you for verifying your email address. ".
+      "Please enter %s in the original web page in order to send your email."), $code);
+
+    $success = $mailer->Send();
+
+    if (!$success)
+    {
+      throw new Exception(__("unable to send email to") . " {$field->visitorEmail}, {$mailer->ErrorInfo}");
+    }
+  }
 
   /*
    * email the original or updated message to the party or parties that are the target of
@@ -421,7 +513,8 @@ EOT;
     Ecampaign::fetchPostedOtherFields($field, $this->targetFields,
     array('subject', 'visitorName', 'visitorEmail',
     'address1', 'address2', 'address3','city', 'ukpostcode', 'postcode', 'state', 'zipcode', 'country',
-    'checkbox1', 'checkbox2', 'targetEmail', 'campaignEmail', 'referer'));
+    'checkbox1', 'checkbox2', 'targetEmail', 'campaignEmail', 'referer', 'postid', 'captcha'));
+
 
     $field->campaignEmail = Ecampaign::hideEmail($field->campaignEmail) ;  // restore @
     $recipientString =      Ecampaign::hideEmail($field->targetEmail) ;  // restore @
@@ -436,13 +529,49 @@ EOT;
 
     Ecampaign::validateEmail($field->visitorEmail, $this->options->checkdnsrr); // throws exception if fails.
 
+    if (array_key_exists(self::$verificationCode, $this->targetFields))
+    {
+      // nonce creation lifted from wordpress pluggable.php
+      // verification code is different on each site for same email addresses
+
+      $i = wp_nonce_tick();
+      $hashCodes = array();
+      $action = $field->targetEmail . $field->visitorEmail;
+      // Nonce generated 0-12 hours ago
+      $hashCodes[] = substr(wp_hash($i . $action, 'nonce'), -12, 4);
+      // Nonce generated 12-24 hours ago
+      $hashCodes[] = substr(wp_hash(($i - 1) . $action, 'nonce'), -12, 4);
+
+      $userEnteredCode = $_POST["verificationCode"];
+
+      if (empty($userEnteredCode))
+      {
+        $this->sendValidationCode($field, $hashCodes[0]);
+        return array("success" => true, "getCode" => true,
+                     "msg" => __("Please check your email. Please enter 4 characters in the empty code field above."));
+      }
+
+      if ((0 != strcasecmp($userEnteredCode,$hashCodes[0]))
+      &&  (0 != strcasecmp($userEnteredCode,$hashCodes[1])))
+      {
+        throw new Exception("The code from the email does not match the expected value.");
+      }
+    }
+
+    if (array_key_exists(self::$captcha, $this->targetFields))
+    {
+      include_once WP_PLUGIN_DIR . $this->options->captchadir . '/securimage.php' ;
+      $securimage = new Securimage();
+      if ($securimage->check($_POST['captcha']) == false)
+        throw new Exception(__("The captcha security code does not match the image, please try again. Case does not matter."));
+    }
+
+
     $mailer = Ecampaign::getPhpMailer($this->options);
     $mailer->Subject = $field->subject;
     $mailer->From = $field->visitorEmail;
     $mailer->FromName = $field->visitorName;
     $mailer->AddBCC($field->visitorEmail);       // copy of email for site visitor
-    // add the originating URL so abuse can be tracked back to specific web page
-    $mailer->addCustomHeader("X-ecampaign-URL: {$_SERVER["HTTP_REFERER"]}");
 
     foreach ($recipients as $recipient)
     {
@@ -464,6 +593,14 @@ EOT;
     {
       throw new Exception(__("unable to send email to") . " {$recipientString}, {$mailer->ErrorInfo}");
     }
+
+    // Increment counter. Note that this read-and-update is not an
+    // indivisible transaction, some other thread might be accessing this code
+    // and the count may fall behind.
+
+    $count = get_post_meta($field->postid, self::$counter, true);
+    update_post_meta($field->postid, self::$counter, $count+1);
+
     // forward a similar version of the email to the campaign but add the checkfields that they have clicked
 
     $mailer->ClearAllRecipients();
@@ -488,7 +625,9 @@ EOT;
     if (!$success)
       throw new Exception(__("unable to cc email to"). " {$field->campaignEmail}, {$mailer->ErrorInfo}");
 
-    return $this->options->thankYouText ;
+    return array("success" => true,
+                 "nonce" => wp_create_nonce('ec_sendToFriend'),
+                 "msg" => $this->options->thankYouText);
   }
 
   /**
@@ -547,19 +686,25 @@ EOT;
   static function renderField($name, $label, $value, $max, $min, $class1, $class2)
   {
     if ($min > 0)
+    {
       $class2 .= ' mandatory' ;
-    // note that the value of id e.g. 'City' is expected to be translated to local language
-    // and, worst it may contain a apostrophe
-    $replace = "<div class='ecfield $class1'><label for='$name' >"
-      .$label
-      ."</label>"
-      ."<input type='text' name='$name' id=\"{$label}\" size='$max' class='$class2' value=\"{$value}\" /></div>\n";
+      if (!empty($label)) $label .= " *" ;
+    }
+    // note that $label can contain apostrophes.
+    // input text is wrapped by div so error can be attached
+
+    $replace = "<div class='$class1'>
+                  <label for='$name' >".$label."</label>
+                  <div class='ecinputwrap'>
+                    <input type='text' name='$name' id='$name' size='$max' class='$class2' value=\"{$value}\" />
+                  </div>
+                </div>\n";
     return $replace ;
   }
 
   static function renderCheckBox($name, $label, $class)
   {
-    return "<div class='ecfield'><input type='checkbox' name='$name' id='$label' class='$class'/><label for='$name'>$label</label></div>\n";
+    return "<div class='ecfield'><input type='checkbox' name='$name' id='$name' class='$class'/><label for='$name'>$label</label></div>\n";
   }
 
 
@@ -748,6 +893,8 @@ EOT;
     $phpmailer->WordWrap = 76 ;    // reluctantly
     $phpmailer->Mailer = $options->mailer ;
     $phpmailer->CharSet = apply_filters( 'wp_mail_charset', get_bloginfo( 'charset' ));
+    // add the originating URL so abuse can be tracked back to specific web page
+    $phpmailer->addCustomHeader("X-ecampaign-URL: {$_SERVER["HTTP_REFERER"]}");
     return $phpmailer ;
   }
 
