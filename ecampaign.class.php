@@ -264,9 +264,6 @@ EOT;
       die(__('ecampaign: page not setup properly')."<p>$errorText</p> <p>{$this->help()}</p>");
     }
 
-    $postid = get_the_ID();
-    add_post_meta($postid, self::$counter, 0);
-
     $options = $this->options ;  // er just being lazy
 
     $campaignEmailBrokenUp = Ecampaign::breakupEmail($page->campaignEmail);
@@ -337,11 +334,13 @@ EOT;
           break ;
 
         case 'counter' :
-          $replace = get_post_meta($postid, self::$counter, true);
+          $val = get_post_meta(get_the_ID(), self::$counter, true);
+          $replace = is_numeric($val)  ? $val : 0 ;
           break ;
 
         case self::$send :
           $nonce = wp_create_nonce('ec_sendToTarget');
+          $postid = get_the_ID();
           $campaignEmailHidden =  Ecampaign::hideEmail($page->campaignEmail);  // hide @
           $recipientsHidden = Ecampaign::hideEmail($options->testMode ? $options->campaignEmail : $page->targetEmail); // hide @
           $replace =
@@ -450,7 +449,7 @@ EOT;
       $action = $_POST['action'];
 
       if (!in_array($action,array("ec_sendToTarget", "ec_sendToFriend")))
-        throw new Exception("ecampaign_action set to invalid value : " . $action);
+        throw new Exception("action set to invalid value : " . $action);
 
       if (false == check_ajax_referer($action, false, false))
         throw new Exception(__("Request rejected, nonce has unexpected failure."));
@@ -598,6 +597,7 @@ EOT;
     // indivisible transaction, some other thread might be accessing this code
     // and the count may fall behind.
 
+    add_post_meta($postid, self::$counter, 0, false);
     $count = get_post_meta($field->postid, self::$counter, true);
     update_post_meta($field->postid, self::$counter, $count+1);
 

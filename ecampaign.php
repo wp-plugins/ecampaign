@@ -3,7 +3,7 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.75
+ Version: 0.76
  Author: John Ackers
  Author URI: john.ackers ymail.com
 
@@ -71,8 +71,43 @@ function ecampaign_load() {
 
 add_action('init', 'ecampaign_load', 1);
 
-
 add_shortcode('ecampaign', 'ecampaign_short_code');
+
+
+/**
+ * bug fix added in version 0.76
+ * In version 0.75, a counter was added to wp_postmeta. However the counter was
+ * not specified as being 'unique' and as a result one row was added to the
+ * database everytime the counter was incremented.
+ *
+ * So recreate the counter for each post with unique to to true.
+ */
+
+
+function ecampaign_activate()
+{
+  define ("counter", "ecCounter");
+
+  $posts = get_posts(array('meta_key' => counter));
+  $log = "Updated: ";
+
+  foreach($posts as $post)
+  {
+    $val = get_post_meta($post->ID, counter, true);
+
+    if ($val !== false)
+    {
+      delete_post_meta($post->ID,  counter);
+      add_post_meta($post->ID,  counter,  $val,  true);
+      $log .= $post->ID . ":" . $val . " " ;
+    }
+  }
+  return $log ;
+}
+
+
+
+register_activation_hook(plugin_basename(__FILE__), 'ecampaign_activate');
 
 
 function ecampaign_unset_options()
@@ -207,7 +242,7 @@ function ecampaign_options()
   %subject
   %body
     <div id="text-guidance">'
-  . __("Your name and address as entered below will be added. Yoo do not sign your name above. ")
+  . __("Your name and address as entered below will be added. You do not need to add your name above. ")
   .  '</div>
   %name
   %zipcode
@@ -268,7 +303,6 @@ function ecampaign_options()
   ($captchaPresent ? __("Library is present.") : __("Library is not present."))
   , '/ecampaign/securimage', $keys, 'no');
 
-  ec_captchadir
 ?>
 <div class="wrap">
 <h2>Ecampaign settings</h2>
@@ -309,7 +343,7 @@ function ecampaign_options()
         <th scope="row" colspan="2"><?php echo $prompt["ec_thankYouText"] ?></th>
         </tr>
         <tr valign="top">
-        <td>default:<br/><textarea name="ec_92" rows='6' cols='35' readonly='yes'><?php echo  $default['ec_thankYouText']; ?></textarea></td>
+        <td>default:<br/><textarea name="ec_92" rows='6' cols='35' readonly='readonly'><?php echo  $default['ec_thankYouText']; ?></textarea></td>
         <td>current:<br/><textarea name="ec_thankYouText" rows='6' cols='35'><?php echo get_option('ec_thankYouText');?></textarea></td>
         </tr>
 
@@ -318,7 +352,7 @@ function ecampaign_options()
         </tr>
         <tr valign="top">
 
-        <td>default:<br/><textarea name="ec_93" rows='8' cols='35' readonly='yes'><?php echo $default['ec_friendsLayout']; ?></textarea></td>
+        <td>default:<br/><textarea name="ec_93" rows='8' cols='35' readonly='readonly'><?php echo $default['ec_friendsLayout']; ?></textarea></td>
         <td>current:<br/><textarea name="ec_friendsLayout" rows='8' cols='35'><?php echo get_option('ec_friendsLayout'); ?></textarea></td>
         </tr>
 
@@ -355,4 +389,6 @@ function ecampaign_options()
 <?php
 
 }
+
+
 ?>

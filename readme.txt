@@ -85,10 +85,19 @@ If you are using the SMTP transport option offered by PHPMailer, the
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
 
+= Upgrading from 0.75 = 
+
+Deactivate and activate the 0.76 version to clean up the wp_postmeta table.
+
+There was a bug fixed in 0.75 which caused one row of data to be added to the 
+wp_postmeta table on every page read. When the 0.76 plugin is activated, the 
+old wp_postmeta is saved, deleted and recreated for each post. The old 
+rows are deleted and one new row is created in the wp_postmeta table per post.
+
 = Upgrading from 0.74 = 
 
-You have to include %verificationCode or %captcha in the Target Form template to 
-enable email verification or captcha protection.
+You have to include %verificationCode %captcha or %counter in the Target Form 
+template to enable email verification or captcha protection.
 
 = Upgrading from 0.73 = 
 
@@ -113,9 +122,13 @@ None yet.
 
 == Changelog ==
 
+= 0.76 = 
+* Bug in 0.75 fixed which caused unnecessary rows of data (holding the counter data) to be added to the wp_postmeta table.
+
 = 0.75 =
 * CAPTCHA functionality added.
 * email verification added.
+* counter functionality added.
 
 = 0.74 =
 * %body not shown in default template in 0.73, bug fixed. 
@@ -145,6 +158,9 @@ None yet.
 * First version
 
 == Upgrade Notice ==
+
+= 0.76 =
+* Upgrade recommended to fix bug in 0.75.
 
 = 0.75 =
 * Upgrade recommended if ecampaign is installed but not being used in production.
@@ -199,7 +215,7 @@ New lines are not permitted inside the [ecampaign  ] shortcode.
 == Known restrictions, deficiencies and inflexibilty == 
 
 * The site visitor has to have javascript enabled in their browser. There is no fallback mode.
-* The activist only gets a copy of their email. There is no thank you email.
+* The activist only gets one email, a copy of their own email. There is no thank you email.
 * The format of the email sent to campaignEmail is fixed.
 * There is currently no Akismet protection but it could be added.
 * Some error messages in the javascript are not easily translated.
@@ -208,4 +224,6 @@ not possible to simply click on a link in the email (which is usually offered).
 * The verify code in the email must be entered and submitted before the captcha code because 
 the captcha code can only be checked once, subsequent attempts will fail.  Not that ecampaign
 itself does not start a session. However the securimage (captcha) does start a session.
+* The counter value is stored in the metadata for the page and is therefore incremented 
+by all the campaign actions on the same page (if there are more than one).
 
