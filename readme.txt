@@ -198,7 +198,7 @@ Below there is an example of the text you should place on on a wordpress post or
 
     In addition, in parts of the borough, the changes could result in there sometimes being insufficient parking bays available for local permit holders.
 
-    I therefore call on Islington Council to abandon the scheme.
+    I therefore call on the council to abandon the scheme.
     <hr />
     Hi friend,
     Please email Islington Council about the roamer parking scheme which will increase traffic.
