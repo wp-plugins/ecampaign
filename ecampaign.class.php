@@ -282,12 +282,12 @@ EOT;
           $recipientsBrokenUp = $options->testMode ? $campaignEmailBrokenUp : $targetEmailBrokenUp;
           $settingsUrl =  admin_url("options-general.php?page=ecampaign");
           $helpOutOfTestMode =  $options->testMode ?  "<span id='text-test-mode'>[in test mode <a href='{$settingsUrl}')>change</a>]</span>" : "" ;
-          $replace = "<div ><label id='to'>$field->label:</label> $recipientsBrokenUp $helpOutOfTestMode</div>" ;
+          $replace = "<div class='ecflush'><label id='to'>$field->label:</label> $recipientsBrokenUp $helpOutOfTestMode</div>" ;
           break ;
 
         case self::$subject  :
           $replace = Ecampaign::renderField($match, '',
-            $page->targetSubject, $field->max, $field->min, 'ecfield', $field->class);
+            $page->targetSubject, $field->max, $field->min, 'ecflush', $field->class);
           break ;
 
         case self::$body :
@@ -313,12 +313,12 @@ EOT;
         case self::$captcha :
           $imageUrl =  WP_PLUGIN_URL . $this->options->captchadir . "/securimage_show.php" ;
           $replace =
-          "<div class='ecfield'>
+          "<div class='ecfix'>
             <label for='captcha' />&nbsp;</label>
             <img id='ec-captcha' src='{$imageUrl}' alt='#CAPTCHA Image' title='"
           . __("Type the characters in this image into the box below.") . "' />
            </div>
-           <div class='ecfield'>
+           <div class='ecfix'>
              <label for='captcha' />{$field->label}&nbsp;*</label>
              <div class='ecinputwrap'>
                <input type='text' id ='captcha' name='captcha' size='10' maxlength='6' class='mandatory' />
@@ -330,7 +330,7 @@ EOT;
           break ;
 
         case self::$verificationCode :
-          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield eccode hidden', '');
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfix eccode hidden', '');
           break ;
 
         case 'counter' :
@@ -351,13 +351,17 @@ EOT;
         <input type='hidden' name='referer'  value='{$_SERVER["HTTP_REFERER"]}'/>
         <input type='hidden' name='postid'  value='{$postid}'/>
 
-        <div class='ecsend'><input type='button' name='send-to-target' value='{$field->label}'
-         onclick='return ecam.onClickSubmit(this, ecam.targetCallBack);'/></div>
-        <div class='ecstatus'></div>" ;
+        <div class='ecfix'>
+          <div class='ecsend'>
+            <input type='button' name='send-to-target' value='{$field->label}'
+            onclick='return ecam.onClickSubmit(this, ecam.targetCallBack);'/>
+          </div>
+          <div class='ecstatus'></div>
+        </div>" ;
           break ;
 
         default :
-          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield', $field->class);
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfix', $field->class);
           break ;
       }
       if (isset($replace))
@@ -378,7 +382,7 @@ EOT;
 
         case self::$friendSubject :
           $replace = Ecampaign::renderField($match, '',
-            $page->friendSubject, $field->max, $field->min, 'ecfield', $field->class);
+            $page->friendSubject, $field->max, $field->min, 'ecflush', $field->class);
           break ;
 
         case self::$friendBody :
@@ -390,9 +394,9 @@ EOT;
         case self::$friendEmail :
           $replace = "
               <div id='ec-friends-list'>".
-                  Ecampaign::renderField('emailfriend1', $field->label, '', $field->max, $field->min, 'ecfield', 'validateEmail') .
+                  Ecampaign::renderField('emailfriend1', $field->label, '', $field->max, $field->min, 'ecfix', 'validateEmail') .
              "</div>
-              <div id='ec-add-friend'><label>&nbsp;</label><a
+              <div class='ecfix' id='ec-add-friend'><label>&nbsp;</label><a
               href='#' onclick='return ecam.addFriend()'>" . __("add another") . "</div></a>";
           break ;
 
@@ -403,16 +407,17 @@ EOT;
        "<input type='hidden' name='campaignEmail'  value='{$campaignEmailHidden}' />
         <input type='hidden' name='action'  value='ec_sendToFriend'/>
 
-        <div class='ecsend'>
-          <input type='button' name='send-to-friends'  value='{$field->label}'
-          onclick='return ecam.onClickSubmit(this, ecam.friendsCallBack);' />
-        </div>
-        <div class='ecstatus'></div>";
-
+        <div class='ecfix'>
+          <div class='ecsend'>
+            <input type='button' name='send-to-friends'  value='{$field->label}'
+            onclick='return ecam.onClickSubmit(this, ecam.friendsCallBack);'/>
+          </div>
+          <div class='ecstatus'></div>
+        </div>";
           break ;
 
         default :
-          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfield', $field->class);
+          $replace = Ecampaign::renderField($match, $field->label, '', $field->max, $field->min, 'ecfix', $field->class);
           break ;
       }
       if (isset($replace))
@@ -605,18 +610,18 @@ EOT;
 
     $mailer->ClearAllRecipients();
     $mailer->AddAddress($field->campaignEmail);
-    $mailer->Subject = ($ch1 = $field->checkbox1 ?  "yes" : "no " ) . " : "
-                     . ($ch2 = $field->checkbox2 ?  "yes" : "no " ) . " : "
+    $mailer->Subject = ($ch1 = $field->checkbox1 ?  "yes" : "no" ) . " : "
+                     . ($ch2 = $field->checkbox2 ?  "yes" : "no" ) . " : "
                      . $field->subject ;
 
     $options = $this->options ;
     $mailer->Body = Ecampaign::assemblePlainMsg(array(
-                       "to:         $recipientString",
-                       "from:       $field->visitorEmail $field->visitorName",
-                       "referer:    $field->referer",
-                       "remote:     {$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
-                       "checkbox1:  $ch1  $options->checkbox1Text",
-                       "checkbox2:  $ch2  $options->checkbox2Text",
+                       "to: $recipientString",
+                       "from: $field->visitorEmail $field->visitorName",
+                       "referer: $field->referer",
+                       "remote: {$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
+                       "checkbox1: $ch1 $options->checkbox1Text",
+                       "checkbox2: $ch2 $options->checkbox2Text",
                        " ",
                        $mailer->Body));
 
@@ -704,14 +709,14 @@ EOT;
 
   static function renderCheckBox($name, $label, $class)
   {
-    return "<div class='ecfield'><input type='checkbox' name='$name' id='$name' class='$class'/><label for='$name'>$label</label></div>\n";
+    return "<div class='ecfix'><input type='checkbox' name='$name' id='$name' class='$class'/><label for='$name'>$label</label></div>\n";
   }
 
 
   static function renderTextArea($name, $val, $rows, $cols)
   {
     // note that the value of id e.g. 'City' is expected to be translated to local language
-    return "<div class='ecfield'><textarea name='$name' rows=$rows cols=$cols >"
+    return "<div class='ecfix'><textarea name='$name' rows=$rows cols=$cols >"
            .$val
            ."</textarea></div>\n";
   }

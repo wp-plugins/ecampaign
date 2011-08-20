@@ -85,6 +85,10 @@ If you are using the SMTP transport option offered by PHPMailer, the
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
 
+= Upgrading from 0.76 = 
+
+CSS changes only.
+
 = Upgrading from 0.75 = 
 
 Deactivate and activate the 0.76 version to clean up the wp_postmeta table.
@@ -122,8 +126,12 @@ None yet.
 
 == Changelog ==
 
+= 0.77 = 
+* CSS tweaked to make sure form(s) fill available width on IE.
+
 = 0.76 = 
 * Bug in 0.75 fixed which caused unnecessary rows of data (holding the counter data) to be added to the wp_postmeta table.
+* Extra spaces removed from header of email sent back to campaign email address. 
 
 = 0.75 =
 * CAPTCHA functionality added.
@@ -158,6 +166,9 @@ None yet.
 * First version
 
 == Upgrade Notice ==
+
+= 0.77 =
+* Upgrade recommended.
 
 = 0.76 =
 * Upgrade recommended to fix bug in 0.75.

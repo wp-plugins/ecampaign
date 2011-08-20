@@ -12,51 +12,48 @@
 
 /** basic padding around components */
 
-.ecform .ecfield,  .ecform .ecsend,  .ecform .ecstatus, .ecform #text-guidance, .ecform #text-contact {
+.ecform .ecflush, .ecform .ecfix,  .ecform .ecsend,  .ecform .ecstatus, .ecform #text-guidance, .ecform #text-contact 
+{
   padding: 4px 0px;
 }
 
 
-.ecform .ecfield, .ecform .ecsend,  .ecform #text-guidance, .ecform #text-contact
+.ecform .ecflush, .ecform .ecfix, .ecform #text-counter, .ecform #text-contact  
 {
   clear: both ;
-  float: left ;
 }
 
 /* let status creep up alongside the send button */
 
-.ecform .ecstatus, .ecform label, .ecform .ecfield, .ecform .ecinputwrap   
+.ecform .ecfix label, .ecform .ecfix input, .ecform .ecsend, .ecform .ecstatus
 {
   float: left ;
 }
 
-#ec-target .ecfield label, #ec-target .ecsend  
+
+#ec-target .ecfix label, #ec-target .ecsend  
 {
   min-width: 80px;  
 }
 
-#ec-friends label, #ec-friends .ecsend  
+#ec-friends .ecfix label, #ec-friends .ecsend 
 {
   min-width: 150px;
 }
 
 /* float input otherwise it go right */
 
-#ec-target input[type=checkbox] {
+#ec-target input[type=checkbox] 
+{
   float: left; 
 }
 
 
 .ecform #text-test-mode, .ecform #text-counter, .ecform #text-contact  
 {  
-	clear: both ;
   font-size: x-small ;
 }
 
-.ecform .ecform #text-guidance, #text-contact
-{
-  clear:both;
-}
 
 .ecform #text-contact {
   padding: 2px 0px;
@@ -78,7 +75,7 @@
 }
 */
 
-#ec-friends #ec-friends-list .ecfield 
+#ec-friends #ec-friends-list .ecfix 
 {
   padding: 0px 0 0px 0 ;   
 }

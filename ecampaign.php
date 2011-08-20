@@ -3,7 +3,7 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.76
+ Version: 0.77
  Author: John Ackers
  Author URI: john.ackers ymail.com
 
@@ -282,7 +282,7 @@ function ecampaign_options()
    form, %verificationCode or %captcha should be included in the Target Form template above. ").
    __("Adjust field length the same as for Form template above. ").
    __("You have to include the %friendSend button somewhere in the form.</p>"),
-  '<h3 id="text-friends">' . __('What about telling your friends?') . '</h3>
+  '<h3 id="text-friends">' . __('Share with friends') . '</h3>
    %friendSubject
    %friendBody
    %friendEmail
