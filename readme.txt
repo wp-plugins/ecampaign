@@ -3,7 +3,7 @@ Contributors: john ackers
 Donate link: 
 Tags: advocacy, activism, email, ecampaigning
 Requires at least: 3.0.1
-Tested up to: 3.1
+Tested up to: 3.2.1
 Stable tag: trunk
 
 A plugin that allows a simple email based campaign action to be embedded 
