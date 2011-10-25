@@ -1,0 +1,321 @@
+<head>
+<style type="text/css">
+  body, td {font-family: sans-serif ; font-size: .8em }
+  table, tr, td { border: 1px solid lightgrey; }
+  table { border-collapse:collapse; }
+</style>
+</head>
+<body>
+<h3>Ecampaign Admin guide</h3>
+<p>Updated for version 0.80  21-October 2011</p>
+<h3>Overview</h3>
+A plugin that allows a simple petition or email based campaign action to be embedded 
+into any wordpress page or post. Petition signatures and email activity is logged
+and and viewable under the under the admin pages.
+</h3>
+<h3>Sequence of events for email action</h3>
+
+<h4>Step 1 : email to target</h4>
+<ul>
+	<li>This plugin presents a pre-prepared email to the site visitor.</li>
+	<li>The site visitor edits the prepared email and then clicks send.</li>
+	<li>The plugin sends email from the (unverified) website visitor's email address 
+	with 'targetSubject' to 'targetEmail' address(es) and sends a copy to visitor's 
+	own mailbox. Then this plugin sends 
+	an email from the website visitor's email address to the campaign mailbox and 
+	the 'email to friends' form (if declared) is revealed.</li>
+</ul>
+<h4>Step 2 : email to friends (optional)</h4>
+<ul>
+  <li>The website visitor adds friends email addresses.</li>
+	<li>The website visitor edits the prepared email and clicks send.</li>
+	<li>This plugin sends the email from website visitor's email address to one or more friends (max 9).</li>
+</ul>
+<h3>Setting up an simple Email Action</h3>
+The body of the pre-prepared email is wrapped by the [ecampaign][/ecampaign] tags on a 
+wordpress post or page.<br/>
+<code>
+<br/>[ecampaign targetEmail='john.smith@hightown.gov' subject="Planning application P1234, wind turbines on Windy Hill"]
+<br/>I am writing in support of the planning application P1234 to construct a cluster of 
+wind turbines on Windy Hill.
+<br/><br/>
+I think that wind turbines are quite visually attractive. 
+If we want to continue to use the same amount of energy we 
+must seriously address our carbon emissions.
+We need to break our addiction to fossil fuels by making use 
+of the renewable energy sources available to us.
+On shore wind turbines have short carbon payback periods and these turbines will provide us 
+with an unlimited source of fossil free energy for many years. 
+<br/>
+[/ecampaign]
+</code>
+<p>The second form does not appear until the first email is sent.</p>
+<p>
+You can configure testMode or override the campaignEmail address on this particular action, 
+see 'Configuring the ecampaign plugin attributes' below.
+</p>
+
+
+<h3>Setting up an Email Action with a Share with Friend form</h3>
+<p>
+This dual form mode is the only mode supported by earlier versions (&lt; 0.80) of the plugin. 
+
+If you want to site visitors to share with friends (by email) as well, add a &lt;hr&gt; tag (horizontal rule) 
+and add the text of email to friends. Not that the subject lines of the two emails must be set 
+using targetSubject and friendSubject. 
+</p>
+<code>
+[ecampaign targetEmail='john.smith@hightown.gov' targetSubject="Planning application P1234, wind turbines on Windy Hill" friendSubject="Please support the wind turbines on Windy Hill!"]
+<br/><br/>
+[Please customise this message and delete this text]
+<br/><br/>
+I am writing in support of the planning application P1234 to construct a cluster of 
+wind turbines on Windy Hill.
+<br/><br/>
+I think that wind turbines are quite visually attractive. 
+If we want to continue to use the same amount of energy we 
+must seriously address our carbon emissions.
+We need to break our addiction to fossil fuels by making use 
+of the renewable energy sources available to us.
+<br/>
+On shore wind turbines have short carbon payback periods and these turbines will provide us 
+with an unlimited source of fossil free energy for many years. 
+<hr/>
+I have just sent an email an email to the council urging them to approve the planning application
+for a wind farm on Windy Hill.  I hope you will as well.
+<br/>
+[/ecampaign]
+</code>
+
+<h3>Customising the forms</h3>
+<p>
+The forms above will be constructed using the Target form template and the Friend
+form template on the settings page.
+You can add/remove/change the position of all the fields and the supporting text by 
+editing that template.  If nothing else, the postal address fields should be adjusted 
+to match the country!
+</p>
+
+<h3>Setting up a Petition</h3>
+<p>The petition body is enclosed by the 
+[ecampaign class=EcampaignPetition][/ecampaign] tags. Here is an example.</p>
+<code>
+[ecampaign class='EcampaignPetition'] 
+<br/>
+We call on Middletown Council to extend the 20 mph limit from residential 
+roads to include all the main roads in Middletown, where many people live, 
+shop, work and go school.
+
+20mph limits would deliver a healthier, safer and less polluted street 
+environment for all local residents.
+<br/>[/ecampaign]
+</code>
+<p>
+The petition functionality is limited but will be improved in next release. The signatures
+added to the petition are shown in the ecampaign log. The ecampaign view shows the date, 
+name and address of the signatories.
+</p>
+
+<h3>Customising the form on one particular campaign</h3>
+<p>
+If you need more flexibility and want to use different forms for each campaign action,
+you can layout and define all the fields in the form inside the [ecampaign][/ecampaign] brackets. The easiest way
+to do this is to cut and paste a working template from the ecampaign settings page
+and just edit it until it looks the way you want. In the example below, testMode has been 
+configured to suppress email delivery temporarily. 
+</p>
+ 
+<code>
+ 
+[ecampaign class=EcampaignTarget testMode='suppressed']
+<br/>{to* john.smith@hightown.gov, andy.brown@gov.uk}
+<br/>{subject* Planning application P1234, wind turbines on Windy Hill}
+<br/>{body 
+<br/>
+I am writing in support of the planning application P1234 to construct a cluster of 
+wind turbines on Windy Hill.
+<br/><br/>
+I think that wind turbines are quite visually attractive. 
+If we want to continue to use the same amount of energy we 
+must seriously address our carbon emissions.
+We need to break our addiction to fossil fuels by making use 
+of the renewable energy sources available to us.
+On shore wind turbines have short carbon payback periods and these turbines will provide us 
+with an unlimited source of fossil free energy for many years. 
+<br/>}
+<br/>&lt;div class='text-guidance'&gt;Your name and address as entered below will be added. 
+You do not need to add your name above.&lt;/div&gt;
+<br/>{visitorName*} 
+<br/>{visitorEmail*} 
+<br/>{address1}
+<br/>{ukpostcode}
+<br/>{send}
+<br/>{checkbox1 checked="checked" Check if you want to receive alerts about related campaigns.}
+<br/>&lt;div class='text-contact'&gt;{counter} people have taken part in this action. Please 
+contact {campaignEmail} if you have any difficulties or queries.&lt;/div&gt;
+<br/>{success &lt;div class="ecOk bolder"&gt;Your email has been sent.&lt;/div&gt;
+&lt;class="ecOk"&gt;You should receive a copy in your mailbox. Thank you for taking 
+part in this action.&lt;/div&gt;}
+<br/>
+[/ecampaign]
+</code>
+
+
+<h3>Setting up a Send to Friend Form</h3>
+<p>
+<p>The body of the email is enclosed by the 
+[ecampaign class=EcampaignFriend][/ecampaign] tags. 
+</p>
+<code>
+<br/>[ecampaign class=EcampaignFriend subject="Please support the wind turbines on Windy Hill!"]
+I have just sent an email an email to the council urging them to approve the planning application
+for a wind farm on Windy Hill.  I hope you will as well. Here is the link:
+<br/>[/ecampaign]
+</code>
+<p>The link for the campaign is appended to the body of the email automatically.</p>
+<p>
+You can explicitly define the fields on the form if you wish. Note that the site visitor's name and email 
+fields are expected to be present somewhere on the post but not necessarily in this form.
+</p>
+
+<h3><a name='attributes'>Configuring the ecampaign plugin attributes</a></h3>
+<p>
+Attributes can be added to the ecampaign tag. Phrases e.g. the email subject have to be wrapped in single quotes or double quotes. 
+</p>
+<code>
+<br/>[ecampaign name1=value1 name2=value2 name3=value3]  
+<br/>... 
+<br/>[/ecampaign]
+</code>
+
+<p></p>
+
+<table>
+  <tr><td>name</td><td>value and description</td></tr>
+  <tr><td>testMode</td><td>
+    <strong>normal</strong> emails sent to target address(es)
+    <br/><strong>diverted</strong> emails diverted to campaign mailbox
+    <br/><strong>suppressed</strong> emails not set sent at all
+    <br/>
+    <br/>Setting this value overrides the site wide test mode setting. 
+    <br/>Use this (or the site wide setting) when setting up and testing a new campaign action. It prevents the 
+    emails being sent to to the target address prematurely.</td></tr>
+  <tr><td>targetEmail</td><td>Multiple addresses should be separated by commas.</td></tr>
+  <tr><td>campaignEmail</td><td>Override the site wide setting. Blind copies of emails are sent to this address</td></tr>
+  <tr><td>subject</td><td>subject line of email sent to target</td></tr>
+  <tr><td>targetSubject</td><td>subject line of email sent to target.</td></tr>
+  <tr><td>friendSubject</td><td>subject line of email sent to friend.</td></tr>
+  <tr><td>hidden</td><td>set hidden=true to hide form.  
+  Use this to hide this form e.g. 'email to friends' until email first sent to target.</td></tr>
+  <tr><td>class</td><td>specify (the path and) class that should provide the functionality. 
+  The default is EcampaignTarget which supports the 'send to target' functionality. 
+  For example use class='EcampaignFriend' when declaring a 'send to friend' form. 
+  Using class='uk/MP' will extend the ecampaign 'send to target' functionality to lookup an
+  MPs email address from a uk postcode.</td></tr>
+</table>
+
+<h3><a name='fields'>Configuring Fields</a></h3>
+<h4>Valid Fields</h4>
+<p>All the fields must be declared inside [ecampaign][/ecampaign] brackets on the wordpress post. 
+If no fields are declared, then the form will be constructed using the definitions specified in the site 
+wide templates in the ecampaign settings page. All the attributes must be on the same line; this appears
+to be a wordpress limitation.</p>
+
+<table>
+  <tr><td>name</td><td>how it is used</td></tr>
+  <tr><td>{to xx.yy@zzz.com}</td><td>A non editable field that holds the target email address(es).</td></tr>
+  <tr><td>{subject}</td><td>The editable subject of the outgoing email.</td></tr>
+  <tr><td>{body}</td><td>The editable body of the outgoing email. This field is rendered as an HTML textarea. 
+  Note that all other text fields are rendered using an HTML input field. 
+  Enclose any text in [..] if you want to force the site visitor to edit/remove it before the email can be sent.
+  It might be desirable to set rows and columns depending on the wordpress theme being used, see setting 
+  field attributes below.</td></tr>
+  <tr><td>{name} {email}</td><td>Site visitors name and email address are used to 
+  create the 'from' address on all emails</td></tr>
+  <tr><td>{address1} {address2} {address3} {city} {postcode} {ukpostcode} {state} {zipcode} {country}</td>
+  <td>Postal address fields.  Postal address fields are blocked together to create the postal address 
+  appended to the email sent to the target email address.  Postal fields are also displayed in the 
+  in the petition view of the ecampaign log accessed through the admin pages. 
+  Blank/missing fields are ignored. 
+  Zipcode and ukpostcode are validated by javascript in the browser. The postcode field is not validated.</td></tr>
+  <tr><td>{captcha}</td><td>Adds the wordpress <a href="http://www.phpcaptcha.org/">securimage captcha<a/> mechanism in the form</td></tr>
+
+  <tr><td>{verificationCode}</td><td>This field does not appear until the {sign} or {send} button is clicked at which 
+  time an email is sent to the site visitor's email address containing a 4 digit verification code.
+  It should not be necessary to deploy both captcha and verificationCode on the same site 
+  but they will happily coexist.</td></tr>
+
+  <tr><td>{checkbox1} {checkbox2}</td><td>Adds checkboxes and to a form e.g. {checkbox1 Check if you want to stay in touch} 
+  This data is collected in the ecampaign log (available through the wp-admin pages) and included in emails sent to campaignEmail.</td></tr>
+
+  <tr><td>{sign}</td><td>Adds a button to the form which when clicked adds vistor's name and address to ecampaign log. 
+  Required in the form somewhere to add a name/address to a petition. (Used by the EcampaignPetition class)</td></tr>
+
+  <tr><td>{send}</td><td>Adds a button to the form which when clicked sends email to target. Required in the form somewhere in the 
+  to send an email to the target address. This action is logged. (Used by the EcampaignTarget class)</td></tr> 
+   
+  <tr><td>{campaignEmail}</td><td>This is just a string placeholder. The form text is replaced by the actual campaign email address. 
+  It is obfuscated by SPAN tags to make it less likely for spammers to find it in a web page.</td></tr>  
+
+  <tr><td>{counter}</td><td>This is just a string placeholder. The form text is replaced by the number of people that have taken 
+  actions on this page/post.</td></tr>  
+  
+  <tr><td>{success}</td><td>The field is a holder for the message sent to the site visitor after s/he has completed the campaign action. It can include HTML tags.</td></tr> 
+
+  <tr><td>{friendEmail}</td><td>Adds one empty field. Additional fields/recipients can be added added and removed by the user. 
+  (Used by the EcampaignFriend class). </td></tr> 
+
+  <tr><td>{friendSend}</td><td>Adds a button to the form which when clicked sends email to recipients specified in {friendEmail}. 
+  (Used by the EcampaignFriend class). </td></tr> 
+
+  <tr><td>{lookup}</td><td>Adds a button to the form which when clicked looks up an email address 
+  using a ukpostcode. Used by some classes that extend EcampaignTarget which provides the basic 
+  'send to target'functionality.</td></tr> 
+  
+</table>
+
+<h4>Creating a Mandatory Field</h4>
+<p>
+To make a field mandatory, append an asterisk to the name of the field e.g. {name*}. Enforcement is done by the javascript in the browser.
+</p>
+
+<h4><a name='fieldAttributes'/>Setting Field Attributes</a></h4>
+<p>
+Attributes can be added to any field. These attributes are conferred to the INPUT, TEXTAREA or DIV elements 
+that is being used to create the field. Examples are shown below:
+</p><p>
+{body rows=10 cols=70} adjust size of the textarea holding the body field.
+</p><p>
+{city size=20} adjust the length attribute of input element holding the city field.
+</p><p>
+{subject readonly='readonly'} prevents the site visitor from changing the subject line of the email.
+</p><p>
+{checkbox1 checked='checked'} pre checks a check box.
+</p><p>
+{name min=6}  'min' is not an official HTML attribute. It sets minimum number of characters of any field. 
+'min' is currently enforced at the server. Note that if a field is declared mandatory it only has to 
+meet the 'min' requirement if it is one or more characters long.   (Although 'min' is not a legal 
+HTML attribute, most browsers accept additional attributes).
+</p>
+<p>Attribute values can be single or double quoted. However some wordpress themes convert straight quotes
+to curly quotes and 
+<a href='http://www.fayazmiraz.com/disable-auto-curly-quotes-in-wordpress/'>this conversion has to be disabled.</a>.
+</p>
+ 
+<h3><a name='lookup'>Looking up elected representatives by postcode</a></h3>
+<p>
+Several classes under the 'uk' directory support the lookup of email addresses of UK elected representatives.
+To use these classes, specify the path and class of the appropriate PHP file as an ecampaign attribute (see above).
+These files can be removed if you are not using this functionality.
+</p>
+<ul>
+<li>uk/MP to look up MP for a particular UK postcode</li>
+<li>uk/MSP to look up MSP for a particular Scottish postcode</li>
+<li>uk/Councillor to look up councillor for a particular UK postcode</li>
+</ul>
+<p>
+The only other requirement is to add a {lookup} field to the form, possibly but not necessarily 
+next to the {ukpostcode} field. It should be easy to create a class to lookup politicians in
+other countries by cloning and renaming one of these classes.
+</p>
+</body>

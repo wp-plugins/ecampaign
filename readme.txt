@@ -6,20 +6,21 @@ Requires at least: 3.0.1
 Tested up to: 3.2.1
 Stable tag: trunk
 
-A plugin that allows a simple email based campaign action to be embedded 
-into any wordpress page or post. 
+A plugin that allows a simple petition or email based campaign action to be embedded 
+into any wordpress page or post. Petition signatures and email activity is logged
+and and viewable under the under the admin pages.
 
 == Description ==
 
 This plugin allows a campaign action to be embedded into any wordpress page 
 or post. The sequence of events is:
 
-1. The site visitor is presented with a prepared email.
+1. The site visitor is presented with a form containing the petition body or an email message.
 2. The visitor adds their name, email address, postal address etc. and can or may be required to customize 
 the text of the email.
-3. The visitor clicks on 'Send email'.
-4. The email is sent to the target email address(s) and copied to the visitor's address. 
-5. An extended version of the email that includes the referer, the visitors IP address and details 
+3. The visitor clicks on 'Sign' or 'Send', this is logged.
+4. If applicable,  the email is sent to the target email address(s) and copied to the visitor's address. 
+5. If applicable, an extended version of the email that includes the referer, the visitors IP address and details 
 of the checked boxes is sent to the campaign email address. 
 6. A hidden form is revealed which encourages the visitor to send a prepared email 
 to one or more friends.
@@ -27,18 +28,20 @@ to one or more friends.
 
 = Features =
 
-* Apart from the plugin options and one counter, no data is stored in the wordpress database. 
+* Petition signatures and all other activity/errors/exceptions logged
 * Optional CAPTCHA support using http://www.phpcaptcha.org/.
 * Email addresses, zipcodes and UK postcodes are validated.
 * Optional verification of site visitor's email address.
-* Site visitor can be required to edit message, by removing optional guidance notes, before sending.
+* Site visitor can be required to edit email message, by removing optional guidance notes, before sending.
 * When enabled, a simple test mode diverts emails from the target address to the campaign email address.
 * There is only one block of content embedded into one page and user interaction is via AJAX.
-* All available error messages are passed back to the visitor.
+* All available error messages are passed back to the visitor as well as being logged.
 * Fields can be added/removed/rearranged and size changed.  
 * Appearance customizable via CSS.
 * Email addresses displayed are antispammed.
+* Log entries are paged, filtered and can be deleted.
 * I18n language translation support for server side messages.
+* Extensions to look up UK MPs and councillors.
 
 
 = Configurable Options = 
@@ -46,8 +49,8 @@ to one or more friends.
 The site administrator can:
 
 * change the campaign email address.
-* change which fields appear in the form and their size.
-* change the size of the message area.
+* change which fields appear in the form, their size and relative location.
+* change the size of the message areas.
 * enable 1 or 2 additional checkboxes (e.g. to prompt the visitor for 
 further campaign updates).
 * enable DNS checking of email addresses.
@@ -73,7 +76,7 @@ and 1.02 packaged with si-contact-form.
 
 Anyone that is able to create/edit pages can create new campaign actions by creating 
 a new post or page and embedding the default text of the email along with the 
-default subject of the email,  the target address and if necessary override the 
+default subject of the email, the target address and if necessary override the 
 campaign email address.
 
 Mail is sent directly via the PHPMailer class because it provides access to 
@@ -84,6 +87,13 @@ to make it slightly more difficult for spammers.
 If you are using the SMTP transport option offered by PHPMailer, the 
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
+
+= Upgrading from 0.77 = 
+
+This is a significant upgrade. *Field definition has changed*. The two new default 
+templates must be cut and pasted over the old templates on the settings page. 
+This is not done automatically because any customisation would be lost. A new log 
+table is added to the database when the plugin is reactivated. 
 
 = Upgrading from 0.76 = 
 
@@ -126,6 +136,16 @@ None yet.
 
 == Changelog ==
 
+= 0.80 = 
+* Field definition has changed. Each field is wrapped in {}. 
+* Mandatory fields no longer hard coded. Each field can be made mandatory by adding asterisk e.g. {subject*}
+* Petition functionality added.
+* Logging of petition signatures added
+* Sidebar available showing ecampaign activity.  
+* Log administration, logging of email activity and any exceptions added  
+* Code refactoring to allow ecampaign class to be extended.
+* Ecampaign extensions including uk/MP, uk/MSP and uk/Councillor to lookup up politicians using UK postcode.
+
 = 0.77 = 
 * CSS tweaked to make sure form(s) fill available width on IE.
 
@@ -167,6 +187,9 @@ None yet.
 
 == Upgrade Notice ==
 
+= 0.80 = 
+* Upgrade to productions sites NOT recommended. Wait for next release.
+
 = 0.77 =
 * Upgrade recommended.
 
@@ -174,6 +197,7 @@ None yet.
 * Upgrade recommended to fix bug in 0.75.
 
 = 0.75 =
+
 * Upgrade recommended if ecampaign is installed but not being used in production.
 
 = 0.74 =
@@ -196,7 +220,7 @@ None yet.
 == Setting up a Campaign Action ==
 
 
-Below there is an example of the text you should place on on a wordpress post or page.  
+Below there is an simple example of the text you could place on on a wordpress post or page to create an out-of-the-can campaign action.  
 
     [ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council's proposals to introduce a Residents Roamer, and unlimited visitors vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
     Dear Sirs
@@ -215,13 +239,8 @@ Below there is an example of the text you should place on on a wordpress post or
     Please email Islington Council about the roamer parking scheme which will increase traffic.
     [/ecampaign]
 
-Note that between [ecampaign] and [/ecampaign], there are the bodies of two emails, separated by 
-
-    <hr/>.
-
-The second message is hidden until the first message is sent. The site visitor cannot 
-send an email until all guidance notes wrapped in square brackets is removed. 
-New lines are not permitted inside the [ecampaign  ] shortcode.
+More detail and onfiguration options is provided in the readme.html in the plugin directory. 
+(Most recent version http://plugins.svn.wordpress.org/ecampaign/trunk/readme.html)
 
 == Known restrictions, deficiencies and inflexibilty == 
 

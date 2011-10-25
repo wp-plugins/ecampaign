@@ -6,56 +6,65 @@
 .ecform {
   clear: both;
   background-color: #F4F4F4; 
-  padding: 10px;
+  padding: 10px ;
+  margin-top : 20px ;
+  margin-bottom : 20px ; 
   overflow : hidden;
 }
 
-/** basic padding around components */
+/* line wrappers */
 
-.ecform .ecflush, .ecform .ecfix,  .ecform .ecsend,  .ecform .ecstatus, .ecform #text-guidance, .ecform #text-contact 
+.ecrow
 {
-  padding: 4px 0px;
+  clear: both ; 
+  padding-top: 4px  ;   /* put space between rows */
+  padding-bottom: 4px  ;   /* put space between rows */
+}
+
+/* float most elements but don't float div.ecrow or IE 7 will screw up */
+
+.ecrow label, .ecrow input, .ecrow select,  
+.ecrow .ecinputwrap, .ecrow .eclookup, .ecrow .ecsend, .ecrow .ecstatus, 
+.ecrow .text-test-mode
+{
+  float: left ; 
+}
+
+.ecrow .ecstatus
+{
+  padding-left: 5px  ;   
+  padding-right: 5px  ; 	
 }
 
 
-.ecform .ecflush, .ecform .ecfix, .ecform #text-counter, .ecform #text-contact  
-{
-  clear: both ;
-}
-
-/* let status creep up alongside the send button */
-
-.ecform .ecfix label, .ecform .ecfix input, .ecform .ecsend, .ecform .ecstatus
-{
-  float: left ;
-}
-
-
-#ec-target .ecfix label, #ec-target .ecsend  
+.ec-target label, .ec-target .ecsend
 {
   min-width: 80px;  
 }
 
-#ec-friends .ecfix label, #ec-friends .ecsend 
+.ec-friend label, .ec-friend .ecsend 
 {
   min-width: 150px;
+
+}
+.ecform label#lab-to, .ecform label#lab-subject, .ecform label#lab-friendSubject
+{
+  min-width: 0px;  /** tight specificity needed for ie7 */
 }
 
 /* float input otherwise it go right */
 
-#ec-target input[type=checkbox] 
+.ec-target input[type=checkbox] 
 {
   float: left; 
 }
 
-
-.ecform #text-test-mode, .ecform #text-counter, .ecform #text-contact  
+.ecform .text-test-mode, .ecform .text-counter, .ecform .text-contact
 {  
   font-size: x-small ;
 }
 
-
-.ecform #text-contact {
+.ecform .text-contact {
   padding: 2px 0px;
 }
 
@@ -75,23 +84,31 @@
 }
 */
 
-#ec-friends #ec-friends-list .ecfix 
+
+.ec-friend .ecrow #ec-friends-list 
 {
   padding: 0px 0 0px 0 ;   
 }
 
 
-#ec-friends #ec-add-friend  
+.ec-friend .ecrow #ec-friends-list  div.ecfriend, .ec-friend #ec-add-friend 
+
 {
   clear:both;
   padding: 0px 0 0px 0 ;   
 }
 
 
-#ec-friends.hidden, .eccode.hidden 
+.eccode.hidden, .ecform.hidden
 {
   display:none ;
 }
+
+.ecform div.ecrow div.ecstatus
+{
+  padding-left: 10px ; 
+}
+
 
 /** put error messages in a different colour */
 
@@ -102,10 +119,10 @@
 
 .ecform .ecError
 {
-  color : red ;
+	color : red ;
 }
 
-.ecform #text-sent-1
+.ecform .bolder
 {
   font-weight: bolder;
 }
@@ -116,4 +133,51 @@
 #ec-settings th
 {
   width : 250px ; 
+}
+
+/**
+ * remove shadow borders from input boxes
+ * because it's rarely used by other campaign sites. 
+ */
+ 
+.ecform input[type=text] 
+{
+  border-style : solid ; 
+  border-color : #e0e0e0 ; 
+  border-width : 1px ;
+}
+
+
+.ecform div.body
+{
+	margin : 10px ;
+  background : lightyellow ;
+}
+
+/**
+ * log administration page 
+ */
+ 
+
+#eclog,  #eclog div {
+  background-color: #eee;
+  padding: 2px ;  
+}
+
+
+#eclog span.ecinline {
+  background-color: white;
+  padding: 6px 0px  ;
+  margin : 4px 20px 4px 2px ; 
+}
+
+ 
+#eclog span.ecinline span, #eclog span.ecinline a, 
+#eclog span.ecinline label, #eclog span.ecinline input 
+{
+  margin: 4px 5px ;   
+}
+
+.infoBlock {
+	display : none;
 }
