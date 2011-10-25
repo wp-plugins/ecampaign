@@ -315,7 +315,37 @@ These files can be removed if you are not using this functionality.
 </ul>
 <p>
 The only other requirement is to add a {lookup} field to the form, possibly but not necessarily 
-next to the {ukpostcode} field. It should be easy to create a class to lookup politicians in
+next to the {ukpostcode} field.  Here is an example template to lookup up an M.P.: 
+</p>
+<code>
+[ecampaign class='uk/MP']
+<br/>{name*}
+<br/>{email*}
+<br/>{address1* }
+<br/>{city}
+<br/>{ukpostcode*} {lookup}
+<br/>{to* lookup@my.MP}
+<br/>{subject* Please sign Early Date Motion 1234} 
+<br/>{body
+<br/>Dear MP
+<br/>
+<br/>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+<br/>
+<br/>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<br/>}
+<br/>&lt;div class='text-guidance'&gt;Your name and address as entered above will be added. 
+You do not need to add your name above.&lt;/div&gt;
+<br/>{send}
+<br/>{checkbox1 checked=checked Keep me in touch with this campaign} 
+<br/>&lt;div class='text-contact'&gt;{counter} people have taken part in this action. Please 
+contact {campaignEmail} if you have any difficulties or queries.&lt;/div&gt;
+<br/>{success &lt;div class="ecOk bolder"&gt;Your email has been sent.&lt;/div&gt;
+&lt;class="ecOk"&gt;You should receive a copy in your mailbox. Thank you for taking 
+part in this action.&lt;/div&gt;}
+<br/>[/ecampaign]
+</code>
+<p>The contents of the 'to' field is unimportant. It will be filled with the MP's email address. 
+The MP's constituency will appear next to the lookup button. It should be easy to create a class to lookup politicians in
 other countries by cloning and renaming one of these classes.
 </p>
 </body>
