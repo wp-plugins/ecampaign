@@ -269,7 +269,7 @@ class Ecampaign
 
         $this->classPath = 'EcampaignFriend'; // bodge
         $pageAttributes->subject = $pageAttributes->friendSubject ;
-        $pageAttributes->body = $pageParts[1] . "<p>http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}</p>";
+        $pageAttributes->body = $pageParts[1] . "<p>". get_permalink() . "</p>";
         $pageAttributes->hidden = true ;
         // Convert the clean \r\n characters into html breaks so its in the same
         // format as if the form were embedded in the post.
@@ -348,6 +348,8 @@ class Ecampaign
 
     $html = "<div class='ecrow'>" . implode("</div>\r\n<div class='ecrow'>", $rows) ."</div>" ;
 
+    unset($pageAttributes->body);       // no need to serialize it (and it can change
+                                        // if URL attached to bottom of friends body changes)
     $form['pageAttributes'] = $pageAttributes ;
     $form['template'] = $templateFields ;
     $form['testMode'] = $this->testMode ;
@@ -526,12 +528,11 @@ class Ecampaign
         break ;
 */
       case self::sBody :
-        $md5 = md5($efield->value);      // prior to url of post action being added
         if (isset($this->bodyTrailer))   // set in EcampaignFriends to carry url of post
           $efield->value .= $this->bodyTrailer ;
         $efield->value = strip_tags($this->replaceParagraphTagsWithNewlines($efield->value));
         $html = $efield->writeTextArea();
-        $efield->value = 'not serialized, MD5='. $md5 ;    // because it can be very large
+        unset($efield->value) ;    // to prevent if from being serialized
         break ;
 
       case self::sCaptcha :  // todo: need to display warning in captcha module not loaded

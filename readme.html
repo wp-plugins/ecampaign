@@ -12,7 +12,6 @@
 A plugin that allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post. Petition signatures and email activity is logged
 and and viewable under the under the admin pages.
-</h3>
 <h3>Sequence of events for email action</h3>
 
 <h4>Step 1 : email to target</h4>
@@ -162,7 +161,6 @@ part in this action.&lt;/div&gt;}
 
 
 <h3>Setting up a Send to Friend Form</h3>
-<p>
 <p>The body of the email is enclosed by the 
 [ecampaign class=EcampaignFriend][/ecampaign] tags. 
 </p>
@@ -238,7 +236,7 @@ to be a wordpress limitation.</p>
   in the petition view of the ecampaign log accessed through the admin pages. 
   Blank/missing fields are ignored. 
   Zipcode and ukpostcode are validated by javascript in the browser. The postcode field is not validated.</td></tr>
-  <tr><td>{captcha}</td><td>Adds the wordpress <a href="http://www.phpcaptcha.org/">securimage captcha<a/> mechanism in the form</td></tr>
+  <tr><td>{captcha}</td><td>Adds the wordpress <a href="http://www.phpcaptcha.org/">securimage captcha</a> mechanism in the form</td></tr>
 
   <tr><td>{verificationCode}</td><td>This field does not appear until the {sign} or {send} button is clicked at which 
   time an email is sent to the site visitor's email address containing a 4 digit verification code.

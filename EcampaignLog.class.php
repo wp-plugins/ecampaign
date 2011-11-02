@@ -99,7 +99,7 @@ class EcampaignLog
         array(
           'id' => __('ID'),
           'date' => __('date'),
-          'state' => __('transaction'),
+          'state' => __('action'),
           'visitorName' => __('name'),
           'visitorEmail' => __('email'),
           'postID' => __('post'),
@@ -108,7 +108,7 @@ class EcampaignLog
 //          'if(checkbox1,"yes","no") as checkbox1' => __('c1'),  //does not work with filters
 //          'if(checkbox2,"yes","no") as checkbox2' => __('c2'),
           'info' => __('info')
-        ),
+      ),
       __("Petition") =>
         array(
 //          '@rownum:=@rownum+1' => __('num'),
@@ -116,9 +116,16 @@ class EcampaignLog
           'visitorName' => __('name'),
           'visitorEmail' => __('email'),
           'address' => __('address')
-        )
+      ),
+      __("Email & Name") =>
+        array(
+//          '@rownum:=@rownum+1' => __('num'),
+          'visitorEmail' => __('email'),
+          'visitorName' => __('name')
+      )
+
     );
-    $filterByFields = array('state', 'visitorName', 'visitorEmail', 'checkbox1', 'checkbox2', 'postID');
+    $filterByFields = array('state', 'checkbox1', 'checkbox2', 'postID');
 
     include_once dirname(__FILE__) . '/EcampaignTableView.class.php';
     $tableView = new EcampaignTableView();

@@ -74,10 +74,13 @@ function ec_activation()
   $log = new EcampaignLog;
   $log->install();
 
-  define ("counter", "ecCounter");
+/*
+  bug in 0.75 : Remove multiple values ecCounter
+  and replace with single value
 
+  define ("counter", "ecCounter");
   $posts = get_posts(array('meta_key' => counter));
-  $log = "Updated: ";
+  $log = "Updated : ";
 
   foreach($posts as $post)
   {
@@ -87,10 +90,21 @@ function ec_activation()
     {
       delete_post_meta($post->ID,  counter);
       add_post_meta($post->ID,  counter,  $val,  true);
-      $log .= $post->ID . ":" . $val . " " ;
+      $logText .= $post->ID . ":" . $val . " " ;
     }
   }
-  return $log ;
+*/
+
+  // remove formList from all posts
+  // it will be recreated when page first accessed
+
+  foreach(get_posts(array('meta_key' => 'formList')) as $post)
+  {
+    $val = get_post_meta($post->ID, 'formList', true);
+    if ($val !== false)
+      delete_post_meta($post->ID,  'formList');
+  }
+  return "" ;
 }
 
 

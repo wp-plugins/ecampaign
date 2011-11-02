@@ -3,7 +3,7 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.80
+ Version: 0.81
  Author: John Ackers
  Author URI: john.ackers ymail.com
 
@@ -192,7 +192,7 @@ else
 }
 
 // modified version of wordpress function that allows the
-// code to be case sensitive and user use any case
+// code to be case sensitive yet user can use any case
 
 function shortcode_atts_case_sensitive($pairs, $atts) {
   $atts = (array)$atts;

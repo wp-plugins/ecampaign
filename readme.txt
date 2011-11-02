@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: john ackers
 Donate link: 
-Tags: advocacy, activism, email, ecampaigning
+Tags: advocacy, activism, email, petition, ecampaign
 Requires at least: 3.0.1
 Tested up to: 3.2.1
 Stable tag: trunk
@@ -30,12 +30,12 @@ to one or more friends.
 
 * Petition signatures and all other activity/errors/exceptions logged
 * Optional CAPTCHA support using http://www.phpcaptcha.org/.
-* Email addresses, zipcodes and UK postcodes are validated.
+* Email addresses, zipcodes and UK postcodes are client side validated.
 * Optional verification of site visitor's email address.
 * Site visitor can be required to edit email message, by removing optional guidance notes, before sending.
 * When enabled, a simple test mode diverts emails from the target address to the campaign email address.
 * There is only one block of content embedded into one page and user interaction is via AJAX.
-* All available error messages are passed back to the visitor as well as being logged.
+* All error messages are passed back to the visitor as well as being logged.
 * Fields can be added/removed/rearranged and size changed.  
 * Appearance customizable via CSS.
 * Email addresses displayed are antispammed.
@@ -48,11 +48,9 @@ to one or more friends.
 
 The site administrator can:
 
-* change the campaign email address.
-* change which fields appear in the form, their size and relative location.
-* change the size of the message areas.
-* enable 1 or 2 additional checkboxes (e.g. to prompt the visitor for 
-further campaign updates).
+* add/remove/modify fields from the three form templates
+* modify the attributes of the INPUT and TEXTAREA elements
+* add 1 or 2 checkboxes (e.g. to opt-in to an email list).
 * enable DNS checking of email addresses.
 
 
@@ -80,20 +78,23 @@ default subject of the email, the target address and if necessary override the
 campaign email address.
 
 Mail is sent directly via the PHPMailer class because it provides access to 
-error messages which aren't available through the wordpress api via wp_mail.
-Email addresses that appear on screen and in the html are broken up 
+error messages which aren't available through the wordpress API via wp_mail.
+Email addresses that appear on screen and in the HTML are broken up 
 to make it slightly more difficult for spammers.
 
-If you are using the SMTP transport option offered by PHPMailer, the 
+Note: If you are using the SMTP transport option offered by PHPMailer, the 
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
+
+= Upgrading from 0.80 = 
+Minor bug fix only.
 
 = Upgrading from 0.77 = 
 
 This is a significant upgrade. *Field definition has changed*. The two new default 
 templates must be cut and pasted over the old templates on the settings page. 
 This is not done automatically because any customisation would be lost. A new log 
-table is added to the database when the plugin is reactivated. 
+table wp_ecampaign_log is added to the database when the plugin is reactivated. 
 
 = Upgrading from 0.76 = 
 
@@ -135,6 +136,9 @@ None yet.
 5. screenshot-6.png - ecampaign settings screen, lower half
 
 == Changelog ==
+= 0.81
+* Bug fix: stop the form data being resaved (saved as formList in post metadata) when page accessed. The symptom is that many 'formUpdate' entries can been in log.
+* Ability to download emails addresses in CSV and tabbed formats on admin/ecampaign log page.
 
 = 0.80 = 
 * Field definition has changed. Each field is wrapped in {}. 
@@ -186,6 +190,8 @@ None yet.
 * First version
 
 == Upgrade Notice ==
+= 0.81 = 
+* Bug fix. Upgrade recommended.
 
 = 0.80 = 
 * Upgrade to productions sites NOT recommended. Wait for next release.
@@ -197,7 +203,6 @@ None yet.
 * Upgrade recommended to fix bug in 0.75.
 
 = 0.75 =
-
 * Upgrade recommended if ecampaign is installed but not being used in production.
 
 = 0.74 =

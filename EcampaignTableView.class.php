@@ -33,7 +33,7 @@ class EcampaignTableView
     $totalRows = $this->getTotalRows($whereClause);
 
     // note when 'numRows' button pressed, 'numRows' value intentionally overwrtten
-    $filterControls->wrap("div");
+
 
     $offset = "0" ; $limit = "10" ;
 
@@ -42,24 +42,33 @@ class EcampaignTableView
 
 //    $pageControl       ->wrap("form", "id='ecampaign-controls' class='ecrow1' ");
 
+    $formatControl = new EcampaignString();
+    $this->addFormatControl($formatControl, $totalRows, $whereClause, $offset, $limit);
+
     $deleteControl = new EcampaignString();
     $this->addDeleteControl($deleteControl, $totalRows, $whereClause, $offset, $limit);
 
     $form = new EcampaignString();
-    $form->add($filterControls);
+    $form->add($filterControls)
+           ->add($viewControl)
+           ->add("<input type='submit' class='button-secondary' name='totalRows' value='Filter'/>")
+           ->add("<input type='hidden' name='page' value='ecampaign-log'/>") // hard code url, yuk!
+           ->wrap("div");
 
     $block2 = new EcampaignString();
     $block2->add($pageControl)
-           ->add($viewControl)
-           ->add("<input type='submit' class='button-secondary' name='totalRows' value='Go'/>")
-           ->add("<input type='hidden' name='page' value='ecampaign-log'/>") // hard code, yuk!
+           ->add($formatControl)
            ->wrap('div');
 
     $form->add($block2)
          ->wrap("form")
          ->add($deleteControl)
-         ->wrap("div", "id='eclog'")
-         ->add($this->addTableContent($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
+         ->wrap("div", "id='eclog'");
+
+    if (!isset($_REQUEST['format']))
+      $form->add($this->addTableContent($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
+    else
+      $form->add($this->writeFile($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
 
     $page = new EcampaignString($title);
     $page->wrap("h2")
@@ -144,6 +153,17 @@ class EcampaignTableView
   }
 
 
+  function addFormatControl($sb, $totalRows, $whereClause, $offset, $limit)
+  {
+    $q1 = $this->createQuery(array("format"=>"CSV","noheader"=>true, "offset"=>0, "pageSize"=>100000));
+    $q2 = $this->createQuery(array("format"=>"tab","noheader"=>true, "offset"=>0, "pageSize"=>100000));
+    $sb->add(
+      "<a title='Download $totalRows rows as Comma Separated Values' href='?$q1'>CSV</a>
+       <a title='Download $totalRows rows as tab separated values' href='?$q2'>Tabs</a>")
+       ->wrap("span", "class='ecinline'");
+  }
+
+
   function addDeleteControl($sb, $totalRows, $whereClause, $offset, $limit)
   {
     $q = $this->createQuery(array());
@@ -174,6 +194,7 @@ class EcampaignTableView
                   ->add("<input type='submit' title='$deleteInfo' onclick=\"$script\"
                     name='totalRows' value='delete' class='button-secondary' />")
                   ->add("<span class='ecstatus'></span>")
+                  ->add("<span style='color:grey; float:right'>c1 is checkbox 1&nbsp;&nbsp;c2 is checkbox 2</span>")
                   ->wrap("form", "method='post' action='?$q' id='ecampaign-delete-form'")
                   ->addTo($sb);
 
@@ -181,7 +202,7 @@ class EcampaignTableView
   }
 
 
-  function addTableContent($columnSet, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1 )
+  function addTableContent($columnSet, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
   {
     global $wpdb ;
 
@@ -189,9 +210,12 @@ class EcampaignTableView
     $drows = $wpdb->get_var("SET @rownum = 0; ");
     $drows = $wpdb->get_results("SELECT {$cols->toString()} FROM $this->tableName WHERE 1=1 $where ORDER BY $orderBy LIMIT $limit OFFSET $offset", ARRAY_A);
 
-    $trows = new EcampaignString();
-
     $thead = new EcampaignString(array_values($columnSet));
+    $trows = new EcampaignString();
+    $tcols = new EcampaignString();
+
+    // this is the normal HTML table output
+
     $thead->wrapAll('th')->wrap('tr')->addTo($trows);
 
     $tcols = new EcampaignString();
@@ -223,6 +247,60 @@ class EcampaignTableView
     return $trows->wrap('table', " class='wp-list-table widefat' ")->asHtml();
   }
 
+  /**
+   * write raw downloadable formats CSV and tab separate
+   *
+   * @param $columnSet
+   * @param $where
+   * @param $orderBy
+   * @param $offset
+   * @param $limit
+   */
+
+  function writeFile($columnSet, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
+  {
+    global $wpdb ;
+
+    $cols = new EcampaignString(array_keys($columnSet));
+    $drows = $wpdb->get_var("SET @rownum = 0; ");
+    $drows = $wpdb->get_results("SELECT {$cols->toString()} FROM $this->tableName WHERE 1=1 $where ORDER BY $orderBy LIMIT $limit OFFSET $offset", ARRAY_A);
+
+    $thead = new EcampaignString(array_values($columnSet));
+    $trows = new EcampaignString();
+    $tcols = new EcampaignString();
+
+  // handle raw downloadable formats CSV and tab separate
+    switch (strtolower($_REQUEST['format']))
+    {
+      case 'tab' : $glue = "\t" ; break ;
+      case 'csv' : $glue = "," ; break ;
+    }
+    $filename = 'ecampaign-' . date('ymd') . '.txt' ;
+    if (isset($_REQUEST['noheader']))
+    {
+      header( "Content-Type: text/plain" );
+      header( "Content-Disposition: attachment; filename='$filename'" );
+    }
+
+    $thead->implode($glue)->addTo($trows);
+
+    foreach ($drows as $dcols)
+    {
+      foreach($dcols as $dkey=>$dval)
+      {
+        switch($dkey)
+        {
+          case 'address':
+          case 'info':
+            $dcols[$dkey] = '"' . $dval . '"';
+          break;
+        }
+      }
+      $tcols->set($dcols)->implode($glue)->addTo($trows);
+    }
+    echo $trows->asHtml();    // not HTML just a string
+    exit(0);
+  }
 
   function getTotalRows($whereClause)
   {

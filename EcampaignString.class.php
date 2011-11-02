@@ -76,7 +76,14 @@ class EcampaignString
     $this->sb = $another ;
     return $this ;
   }
-    function removeEmptyFields()
+
+  function implode($glue)
+  {
+    $this->sb = array(implode($glue, $this->sb));
+    return $this ;
+  }
+
+  function removeEmptyFields()
   {
     $another = array();
     foreach($this->sb as $s)

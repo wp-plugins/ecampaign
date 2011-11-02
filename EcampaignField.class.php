@@ -10,7 +10,7 @@
 
 class EcampaignField
 {
-  private static $id = 0 ;
+  private static $nextIDForEachPage = array();  /// must maintain separate IDs for each page
   public $label, $name, $attributes, $mandatory, $validator ;
   public $wrapper = null ;
   public $type = null ;
@@ -208,10 +208,19 @@ class EcampaignField
   }
 
   /**
-   * provide unique ids for elements
+   * provide unique ids for elements on each page. Notes
+   *
+   * 1. that wordpress can present multiple full length posts on its front page so IDs
+   * must be maintained for each postID
+   * 2. only expecting to create an ID 'inside the wordpress loop'
    */
   static function nextID()
   {
-    return ('ec'.self::$id++);
+    $postID = get_the_ID();
+    if (!isset(self::$nextIDForEachPage[$postID]))
+      self::$nextIDForEachPage[$postID] = 0 ;
+
+    $ab = self::$nextIDForEachPage;
+    return ('ec'.self::$nextIDForEachPage[$postID]++);
   }
 }

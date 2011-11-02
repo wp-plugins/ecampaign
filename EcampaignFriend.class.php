@@ -15,7 +15,7 @@ class EcampaignFriend extends Ecampaign
     $this->defaultTemplate = get_option('ec_friendsLayout');
     $this->styleClass = 'ecform ec-friend';
     $this->validAjaxMethods[] = "friendSend" ;
-    $this->bodyTrailer = "<p>http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}</p>";
+    $this->bodyTrailer = "<p>". get_permalink() . "</p>";
   }
 
   /**
