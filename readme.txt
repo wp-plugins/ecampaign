@@ -136,7 +136,7 @@ None yet.
 5. screenshot-6.png - ecampaign settings screen, lower half
 
 == Changelog ==
-= 0.81
+= 0.81 =
 * Bug fix: stop the form data being resaved (saved as formList in post metadata) when page accessed. The symptom is that many 'formUpdate' entries can been in log.
 * Ability to download emails addresses in CSV and tabbed formats on admin/ecampaign log page.
 
