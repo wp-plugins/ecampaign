@@ -279,7 +279,7 @@ class EcampaignTableView
     if (isset($_REQUEST['noheader']))
     {
       header( "Content-Type: text/plain" );
-      header( "Content-Disposition: attachment; filename='$filename'" );
+      header( "Content-Disposition: attachment; filename=$filename" );
     }
 
     $thead->implode($glue)->addTo($trows);
