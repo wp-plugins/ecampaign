@@ -91,7 +91,7 @@ class MSP extends EcampaignTarget
 
       if (true)  // scrape the official web page
       {
-        $mspEmail = self::lookupMSPEmailFromLastname((String) $msp->{"last_name"} );
+        $mspEmail = self::lookupMSPEmailFromName((String) $msp->{"first_name"}, (String) $msp->{"last_name"} );
       }
       else    // unused fall back, this works for most but not all MSPs
       {
@@ -100,8 +100,8 @@ class MSP extends EcampaignTarget
       $target['email'] = $this->testMode->isDiverted() ? $this->fieldSet->campaignEmail : (String) $mspEmail ;
       $targets[]  = $target ;
     }
-
-    $this->log->write("lookup", $this->fieldSet, (String) $constituency->constitiuency);
+    $info = $this->fieldSet->ukpostcode.", ".(String) $constituency->constituency.", ".count($targets)." MSPs";
+    $this->log->write("lookup", $this->fieldSet, $info);
     return array("target" => $targets,
                  "constituency" => (String) $constituency->constituency,
                  "success" => true,
@@ -116,7 +116,7 @@ class MSP extends EcampaignTarget
    * @param unknown_type $mspLastName
    */
 
-  private static function lookupMSPEmailFromLastname($mspLastName)
+  private static function lookupMSPEmailFromName($firstName, $lastName)
   {
     if (self::$mspPage == null)
     {
@@ -139,13 +139,23 @@ class MSP extends EcampaignTarget
       self::$mspPage = curl_exec($ch);
     }
     $ab = self::$mspPage;
-    $mspRegex = '$href="mailto:([^"]*?' . $mspLastName . '[^"]*?)"$i';
-    $num = preg_match($mspRegex, self::$mspPage, $matches);
+
+    //try traditional firstname.lastname
+    $mspRegex = '$href="mailto:([^"]*?' . $firstName . "\." . $lastName . '[^"]*?)"$i';
+    $num = preg_match_all($mspRegex, self::$mspPage, $matches);
+    if ($num == 1)
+      return $matches[1][0];
+
+    // then try lastname only
+    $mspRegex = '$href="mailto:([^"]*?' . $lastName . '[^"]*?)"$i';
+    $num = preg_match_all($mspRegex, self::$mspPage, $matches);
+    if ($num == 1)
+      return $matches[1][0];
+
     if ($num > 1)
-    {
-      throw new Exception("Unable to get email address for $mspLastName by scraping through page $url");
-    }
-    return ($num == 0) ? "" : $matches[1];
+      throw new Exception("Unable to find $firstName $lastName and multiple email addresses match $lastName on page $url");
+
+    return "" ;
   }
 
   /**
