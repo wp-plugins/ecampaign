@@ -173,8 +173,9 @@ class EcampaignPetition extends Ecampaign
     $fieldSet = $this->fieldSet;
 
     $this->log->write("sign", $fieldSet, $this->infoMap);
-
+    $this->subscribe($fieldSet);
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $this->successMessage));
+
   }
   /*
    * email the original or updated message to the party or parties that are the target of
@@ -222,6 +223,7 @@ class EcampaignPetition extends Ecampaign
       $this->infoMap[] = 'test mode: ' . $this->testMode->toString();
 
     $this->log->write("sent", $fieldSet, $this->infoMap);
+    $this->subscribe($fieldSet);
 
     // forward a similar version of the email to the campaign but add the checkfields that they have clicked
 
@@ -245,6 +247,28 @@ class EcampaignPetition extends Ecampaign
                       "callbackJS" => self::jsRevealNextForm);
 
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $sMsg));
+  }
+
+  /**
+   * subscribe this site visitor to an email list
+   */
+
+  function subscribe($fieldSet)
+  {
+    $listClassPath = get_option('ec_subscriptionClass');
+    if (empty($listClassPath))
+      return ;
+    $listClass = _createFromClassPath($listClassPath);
+    try {
+      $listClass->subscribe($fieldSet->visitorEmail,
+                            $fieldSet->checkbox1, $fieldSet->checkbox1);
+
+      $this->log->write("subscribe", $fieldSet, $this->infoMap);
+    }
+    catch(Exception $e)
+    {
+      $this->log->write("exception", $fieldSet, $e->getMessage());
+    }
   }
 }
 
