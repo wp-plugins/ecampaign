@@ -24,7 +24,7 @@ class Ecampaign
   {
     $path = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
     $helpFile = "readme.html" ;
-    return "<a target='_blank' href='$path/$helpFile$anchor' title='open help in another window'>Ecampaign help page</a>" ;
+    return "<a target='_blank' href='$path/$helpFile$anchor' title='Open ecampaign help page in another window'>". __("More help")."</a>" ;
   }
 
   static $formList, $allFields = array();
