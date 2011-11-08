@@ -18,7 +18,6 @@ function ec_admin_menu()
   add_action( 'admin_init', 'ec_registerOptions' );
 }
 
-
 /**
  * Bind these options to settings page which will make
  * wordpress save them. Not declared, not saved!
@@ -28,72 +27,26 @@ function ec_admin_menu()
 
 function ec_registerOptions()
 {
-  // ecampaign_unset_options();
-  register_setting( 'ec-settings', 'ec_testMode' );
-  register_setting( 'ec-settings', 'ec_campaignEmail' );
-  register_setting( 'ec-settings', 'ec_layout' );
-  register_setting( 'ec-settings', 'ec_petitionLayout' );
-  register_setting( 'ec-settings', 'ec_friendsLayout' );
-
-  register_setting( 'ec-settings', 'ec_mailer' );
-  register_setting( 'ec-settings', 'ec_checkdnsrr' );
-  register_setting( 'ec-settings', 'ec_captchadir' );
+  $fields = _getAdminFields();
+  foreach($fields as $field)
+    register_setting('ec-settings', $field[0]);
 }
-
 
 function ec_uninstall()
 {
-  delete_option('ec_campaignEmail' );
-  delete_option('ec_layout' );
-  delete_option('ec_checkbox1' );
-  delete_option('ec_checkbox2' );
-  delete_option('ec_thankYouText' );
-  delete_option('ec_petitionLayout' );
-  delete_option('ec_friendsLayout' );
-  delete_option('ec_testMode' );
-  delete_option('ec_mailer' );
-  delete_option('ec_checkdnsrr' );
-  delete_option('ec_captchadir' );
-  delete_option('ecampaign_log' );  // holds table version
+  $fields = _getAdminFields();
+  foreach($fields as $field)
+    delete_option('ec-settings', $field[0]);
+
+  delete_option('ecampaign_log' );  // holds db table version
   $log = new EcampaignLog;
   $log->uninstall();
 }
-
-/**
- * bug fix added in version 0.76
- * In version 0.75, a counter was added to wp_postmeta. However the counter was
- * not specified as being 'unique' and as a result one row was added to the
- * database everytime the counter was incremented.
- *
- * So recreate the counter for each post with unique to to true.
- */
-
 
 function ec_activation()
 {
   $log = new EcampaignLog;
   $log->install();
-
-/*
-  bug in 0.75 : Remove multiple values ecCounter
-  and replace with single value
-
-  define ("counter", "ecCounter");
-  $posts = get_posts(array('meta_key' => counter));
-  $log = "Updated : ";
-
-  foreach($posts as $post)
-  {
-    $val = get_post_meta($post->ID, counter, true);
-
-    if ($val !== false)
-    {
-      delete_post_meta($post->ID,  counter);
-      add_post_meta($post->ID,  counter,  $val,  true);
-      $logText .= $post->ID . ":" . $val . " " ;
-    }
-  }
-*/
 
   // remove formList from all posts
   // it will be recreated when page first accessed
@@ -107,7 +60,6 @@ function ec_activation()
   return "" ;
 }
 
-
 function ec_log()
 {
   $log = new EcampaignLog();
@@ -115,58 +67,30 @@ function ec_log()
 }
 
 
-/**
- * add options but put prefix in front of all names.
- * To provide forward, compatability with old versions,
- * use values of old, unprefixed names if they exist
- */
+static $adminFields = array();
 
-function ec_add_option($name, $prompt, $defaultValue, &$keys, $autoload)
+function _getAdminFields()
 {
-  $val = get_option($name);
-  if (empty($val))
-  {
-    $oldName = substr($name,3); // strip off ec_
-    $val = get_option($oldName);
-    if (!empty($val))
-    {
-      add_option($name, $val,'', 'no');
-      delete_option($oldName);
-      return ;
-    }
-  }
-  add_option($name, $defaultValue,'', $autoload);
-  $keys[0][$name] = $prompt;    // save prompts
-  $keys[1][$name] = $defaultValue;  // and default values
-}
+  if (!empty($adminFields))
+    return ($adminFields);
 
-static $ecampaign = null ;
-
-function ec_options()
-{
-  $prompt = array(); $default = array();
-  $keys =  array(&$prompt, &$default);
-  $testMode = new EcampaignTestMode();   // to pick up available test modes
-  if ($ecampaign == null)
-    $ecampaign = new Ecampaign();
-
-  ec_add_option('ec_testMode',
+  $adminFields[] = array('ec_testMode',
   __("Test Modes: Divert or suppress outgoing emails that would normally be sent to the
      target email address. Divert changes the <strong>To:</strong> field of the outgoing email'. ") .
   __("This feature prevents emails being sent to the target organisation accidentally.
-     Emails normally sent to campaign mailbox and friends are still sent."), '', $keys, 'no');
+     Emails normally sent to campaign mailbox and friends are still sent."), '');
 
   // copies of emails are sent here
 
-  ec_add_option('ec_campaignEmail',
+  $adminFields[] = array('ec_campaignEmail',
   __("Campaign mailbox address 'campaignEmail'; copies of activists emails are sent here. You can override it on
-      individual email alerts."), 'campaign.email@not.set.up', $keys, 'no');
+      individual email alerts."), 'campaign.email@not.set.up');
 
   // setting up the default form layout
-  $fieldsHelp = $ecampaign->help('#fields');
-  ec_add_option('ec_layout',
+  $fieldsHelp = Ecampaign::help('#fields');
+  $adminFields[] = array('ec_layout',
 
-  __("<p>Target Form template. Add and remove fields that you want to collect. More detail on the $fieldsHelp.</p>"),
+  __("<p>Target Form template. Add and remove fields that you want to collect. $fieldsHelp.</p>"),
 '{to}
 {subject*}
 {body*}
@@ -186,12 +110,11 @@ function ec_options()
 __("{counter} people have taken part in this action. ").
 __("Please contact {campaignEmail} if you have any difficulties or queries. "). '</div>
 {success <div class="ecOk bolder">'.__('Your email has been sent.').'</div>
- <div class="ecOk">'.__('You should receive a copy in your mailbox. Thank you for taking part in this action.').'</div>}',
-  $keys, 'no');
+ <div class="ecOk">'.__('You should receive a copy in your mailbox. Thank you for taking part in this action.').'</div>}');
 
-  ec_add_option('ec_petitionLayout',
+  $adminFields[] = array('ec_petitionLayout',
 
-  __("<p>Petition Form template. Add and remove fields that you want to collect. More detail on the $fieldsHelp.</p>"),
+  __("<p>Petition Form template. Add and remove fields that you want to collect. $fieldsHelp.</p>"),
 'The petition:
 {body*}
 <div class="text-guidance">'. __("Please add your name and address.").  '</div>
@@ -206,31 +129,62 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
 __("{counter} people have taken part in this action. ").
 __("Please contact {campaignEmail} if you have any difficulties or queries. "). '</div>
 {success <div class="ecOk bolder">'.__('Your name has been added to the petition.').'</div>
- <div class="ecOk">'.__('Thank you for taking part in this action.').'</div>}',
-  $keys, 'no');
+ <div class="ecOk">'.__('Thank you for taking part in this action.').'</div>}');
 
-  ec_add_option('ec_friendsLayout',
-  "<p>".__("Friend Form template. Add and remove fields that you want to collect. More detail on the $fieldsHelp.")."</p>",
+  $adminFields[] = array('ec_friendsLayout',
+  "<p>".__("Friend Form template. Add and remove fields that you want to collect. $fieldsHelp.")."</p>",
   '<h4 id="text-friends">' . __('Share with friends') . '</h4>
 {subject}
 {body}
 {friendEmail}
-{friendSend}',$keys, 'no');
+{friendSend}');
 
   // transport used by PHPMailer to send mail
-  ec_add_option('ec_mailer',
-  __("'Mailer' transport used by PHPmailer (mail, sendmail, smtp)"), 'mail', $keys, 'no');
+  $adminFields[] = array('ec_mailer',
+  __("'Mailer' transport used by PHPmailer (mail, sendmail, smtp)"), 'mail');
 
-  ec_add_option('ec_checkdnsrr',
-  __("Enable checking DNS records for the domain name when checking for a valid E-mail address. "), 'yes', $keys, 'no');
+  $adminFields[] = array('ec_checkdnsrr',
+  __("Enable checking DNS records for the domain name when checking for a valid E-mail address. "), 'yes');
 
   $captchaPresent = file_exists(WP_PLUGIN_DIR . get_option('ec_captchadir') . '/securimage.php') ;
 
-  ec_add_option('ec_captchadir',
-  __("Location of optional CAPTCHA library in plugins directory").
+  $adminFields[] = array('ec_captchadir',
+  __("Relative path of optional CAPTCHA library in plugins directory").
   " <a href='http://www.phpcaptcha.org/'>securimage</a>.  ".
   ($captchaPresent ? __("Library is present.") : __("Library is not present."))
-  , '/ecampaign/securimage', $keys, 'no');
+  , '/ecampaign/securimage', '');
+
+  $adminFields[] = array('ec_subscriptionClass',
+  __("Subscribe site visitors who opt-in using a checkbox to external email list using this class e.g. EcampaignPHPList"),'');
+
+  $adminFields[] = array('ec_subscriptionParams',
+  __("Parameters passed to instance of class above e.g. for PHPList 'checkbox2=6 configFile=/home/web/phplist/lists/config/config.php' ") .
+  Ecampaign::help('#subscription'),'');
+
+  $adminFields[] = array('ec_thirdPartyKey', __("Optional third party API Key used to lookup elected representatives. ") .
+  Ecampaign::help('#lookup'), '');
+
+  return $adminFields;
+}
+
+static $ecampaign = null ;
+
+
+function ec_options()
+{
+  $testMode = new EcampaignTestMode();   // to pick up available test modes
+  if ($ecampaign == null)
+    $ecampaign = new Ecampaign();
+
+  $prompt = array(); $default = array();
+  $adminFields = _getAdminFields();
+  foreach($adminFields as $field)
+  {
+    list($name, $promptValue, $defaultValue) = $field ;
+    add_option($name, $defaultValue, '', $autoload);
+    $prompt[$name] = $promptValue;    // save prompts
+    $default[$name] = $defaultValue;  // and default values
+  }
 
   ?>
 <div class="wrap">
@@ -304,6 +258,30 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
         <tr valign="top">
         <th scope="row"><?php echo $prompt["ec_captchadir"] ?></th>
         <td><input type="text" name="ec_captchadir" size=40 value="<?php echo get_option('ec_captchadir'); ?>" /></td>
+        </tr>
+
+        <tr valign="top">
+        <th scope="row"><?php echo $prompt["ec_subscriptionClass"] ?></th>
+        <td><input type="text" name="ec_subscriptionClass" size=40 value="<?php echo get_option('ec_subscriptionClass'); ?>" />
+        <?php
+        $listClassPath = get_option('ec_subscriptionClass');
+        if (!empty($listClassPath))
+        {
+          $listClass = _createFromClassPath($listClassPath);
+          echo "<br/><span style='color : red'>" . $listClass->checkConfiguration() . "</span>" ;
+        }
+        ?></td>
+        </tr>
+
+        <tr valign="top">
+        <th scope="row"><?php echo $prompt["ec_subscriptionParams"] ?></th>
+        <td><textarea rows=4 cols=35 name="ec_subscriptionParams"><?php echo get_option('ec_subscriptionParams'); ?></textarea></td>
+        </tr>
+
+        <tr valign="top">
+        <th scope="row"><?php echo $prompt["ec_thirdPartyKey"] ?></th>
+        <td><input type="text" name="ec_thirdPartyKey" size=40 value="<?php echo get_option('ec_thirdPartyKey'); ?>" />
+        </td>
         </tr>
 
     </table>
