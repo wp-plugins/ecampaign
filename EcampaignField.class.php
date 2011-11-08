@@ -184,6 +184,26 @@ class EcampaignField
     return ($field);
   }
 
+
+  /**
+   * Parse a string of attributes and return map of key value pairs
+   *
+   * Attributes can be single or double quoted.
+   *
+   * @param $attributes
+   */
+
+  static function parseAttributes($attributes)
+  {
+    $map = array();
+    $count = preg_match_all("$(\w+)=(\w+|[\'\"].+[\'\"])$", $attributes, $matches);
+    for ($j = 0  ; $j < $count ; $j++)
+    {
+      $map[$matches[1][$j]] = $matches[2][$j];  // build map of attributes
+    }
+    return $map ;
+  }
+
   /**
    * Take a string of attributes and remove all the duplicates
    * while allowing the last definition of the attribute to take
@@ -196,12 +216,7 @@ class EcampaignField
 
   static function mergeAttributes($attributes)
   {
-    $map = array();
-    $count = preg_match_all("$(\w+)=(\w+|[\'\"].+[\'\"])$", $attributes, $matches);
-    for ($j = 0  ; $j < $count ; $j++)
-    {
-      $map[$matches[1][$j]] = $matches[2][$j];  // build map of attributes
-    }
+    $map = self::parseAttributes($attributes);
     $s = "" ; foreach($map as $key=>$val)       // implode map.
     $s.= $key."=".$val." " ;
     return $s ;
