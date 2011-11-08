@@ -73,7 +73,9 @@ class MSP extends EcampaignTarget
     if (empty($this->fieldSet->ukpostcode))
       throw new Exception("Postcode field is empty");
 
-    $twfyKey = "BeRwCCEyNTGyDTMVFzCW2fXe" ;     // http://www.theyworkforyou.com/api/key, please replace with own key
+    $twfyKey = get_option('ec_thirdPartyKey');  // http://www.theyworkforyou.com/api/key
+    if (empty($twfyKey))
+      throw new Exception("TheyWorkForYou third Party API key not set");
 
     $mspList = self::request("http://www.theyworkforyou.com/api/getMSP?output=xml&key=$twfyKey&postcode=". urlencode($this->fieldSet->ukpostcode),
     "/twfy/match");
@@ -175,10 +177,14 @@ class MSP extends EcampaignTarget
 
     $xml = curl_exec($ch);
 
+    curl_close($ch);
+
     if ($xml == false)
       throw new Exception("Unable to reach or no response from " . $url);
 
-    curl_close($ch);
+    $error = array();
+    if (0 < preg_match("$<error>(.+?)<\/error>$", $xml, $error))
+      throw new Exception($error[1] . " from " . $url);
 
     $xmlnodes = simplexml_load_string($xml);
 
