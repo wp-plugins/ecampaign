@@ -6,9 +6,8 @@ Requires at least: 3.0.1
 Tested up to: 3.2.1
 Stable tag: trunk
 
-A plugin that allows a simple petition or email based campaign action to be embedded 
-into any wordpress page or post. Petition signatures and email activity is logged
-and and viewable under the under the admin pages.
+Allows a simple petition or email based campaign action to be embedded 
+into any wordpress page or post.
 
 == Description ==
 
@@ -29,7 +28,7 @@ to one or more friends.
 = Features =
 
 * Site visitors name, address, email address can exported as CSV file.
-* Site visitors that opt-in can be subscribed to PHPList.
+* Site visitors that opt-in can be subscribed to PHPList http://www.phplist.com/.
 * Petition signatures and all other activity/errors/exceptions logged.
 * Optional CAPTCHA support using http://www.phpcaptcha.org/.
 * Email addresses, zipcodes and UK postcodes are client side validated.
@@ -65,27 +64,19 @@ The site administrator can:
 For other themes you may need to change the padding and the fonts etc. If the default template doesn't
 match the screen shots, check the template in Ecampaign settings especially after upgrades. 
 
-PHP5 is required. There are no dependencies. filter_vars() from PHP5.2+ is used if available.
-
 If you want to use CAPTCHA, download securimage from http://www.phpcaptcha.org/
 and install somewehere under the plugins directory and change the ecampaign 
 settings to match that location. The default location is under the ecampaign directory. 
 Versions of securimage that have been tested with ecampaign are 2.0 beta 
 and 1.02 packaged with si-contact-form. 
 
-Anyone that is able to create/edit pages can create new campaign actions by creating 
-a new post or page and embedding the default text of the email along with the 
-default subject of the email, the target address and if necessary override the 
-campaign email address.
-
-Mail is sent directly via the PHPMailer class because it provides access to 
-error messages which aren't available through the wordpress API via wp_mail.
-Email addresses that appear on screen and in the HTML are broken up 
-to make it slightly more difficult for spammers.
+If you want to use PHPList, PHPList needs to be installed ideally on the same server. Take a look at the configuration notes in the readme.html
+packaged with the release. 
 
 Note: If you are using the SMTP transport option offered by PHPMailer, the 
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
+
 
 = Upgrading from 0.81 = 
 Minor upgrade. 
@@ -142,7 +133,7 @@ None yet.
 == Changelog ==
 = 0.82 =
 * Bug fix: remove quote around downloaded CSV/tabbed filename.
-* Ability to subscribe site visitors to PHPList (see readme.html).
+* Ability to subscribe site visitors to PHPList (see readme.html in the release).
  
 = 0.81 =
 * Bug fix: stop the form data being resaved (saved as formList in post metadata) when page accessed. The symptom is that many 'formUpdate' entries can be seen in the log.
@@ -231,42 +222,8 @@ None yet.
 = 0.7 =
 * First version.
 
+== For More Information ==
 
-
-== Setting up a Campaign Action ==
-
-
-Below there is an simple example of the text you could place on on a wordpress post or page to create an out-of-the-can campaign action.  
-
-    [ecampaign targetEmail='parking.services@abcde.gov.uk,john.smith@abcde.gov.uk' targetSubject="Objection to Islington Council's proposals to introduce a Residents Roamer, and unlimited visitors vouchers (Ref. TMO/3176)" friendSubject="Roamer parking,  more traffic - please email Islington Council" campaignEmail='info@thecampaign.org.uk']
-    Dear Sirs
-    
-    [Please customise this message and delete this text]
-
-    Objection to Islington Council's proposals to introduce a Residents' Roamer, and unlimited visitors vouchers (Ref. TMO/3176)
-
-    I am writing to object to the above changes in parking rules. I believe they will lead to an increase in traffic, and will worsen conditions for pedestrians, cyclists and buses, as well as leading to an increase in pollution and climate change emissions.
-
-    In addition, in parts of the borough, the changes could result in there sometimes being insufficient parking bays available for local permit holders.
-
-    I therefore call on the council to abandon the scheme.
-    <hr />
-    Hi friend,
-    Please email Islington Council about the roamer parking scheme which will increase traffic.
-    [/ecampaign]
-
-More detail and configuration options is provided in the readme.html in the plugin directory. 
-(Most recent version http://plugins.svn.wordpress.org/ecampaign/trunk/readme.html)
-
-== Known restrictions, deficiencies and inflexibilty == 
-
-* The site visitor has to have javascript enabled in their browser. There is no fallback mode. It does work on IE6.
-* The activist only gets one email, a copy of their own email. There is no thank you email.
-* The format of the email sent to campaignEmail is fixed.
-* There is currently no Akismet protection but it could be added.
-* Some error messages in the javascript are not easily translated.
-* Emails sent to verify email addresses contain 4 digit codes which have to be retyped, it is 
-not possible to simply click on a link in the email (which is usually offered).
-* The counter value is stored in the metadata for the page and is therefore incremented 
-by all the campaign actions on the same page (if there are more than one).
+Detail configuration options and notes are maintained in the readme.html in the released package. 
+The most recent version is at http://plugins.svn.wordpress.org/ecampaign/trunk/readme.html
 

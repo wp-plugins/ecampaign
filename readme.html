@@ -7,7 +7,7 @@
 </head>
 <body>
 <h3>Ecampaign Admin guide</h3>
-<p>Updated for version 0.80  21-October 2011</p>
+<p>Updated for version 0.82  6th Nov 2011</p>
 <h3>Overview</h3>
 A plugin that allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post. Petition signatures and email activity is logged
@@ -86,13 +86,13 @@ for a wind farm on Windy Hill.  I hope you will as well.
 [/ecampaign]
 </code>
 
-<h3>Customising the forms</h3>
+<h3>Customising the site wide templates</h3>
 <p>
 The forms above will be constructed using the Target form template and the Friend
 form template on the settings page.
 You can add/remove/change the position of all the fields and the supporting text by 
-editing that template.  If nothing else, the postal address fields should be adjusted 
-to match the country!
+editing that template and saving the new settings.  If nothing else, the postal address 
+fields should be adjusted to match the country!
 </p>
 
 <h3>Setting up a Petition</h3>
@@ -178,7 +178,9 @@ fields are expected to be present somewhere on the post but not necessarily in t
 
 <h3><a name='attributes'>Configuring the ecampaign plugin attributes</a></h3>
 <p>
-Attributes can be added to the ecampaign tag. Phrases e.g. the email subject have to be wrapped in single quotes or double quotes. 
+Attributes can be added to the ecampaign tag. Phrases e.g. the email 
+subject have to be wrapped in single quotes or double quotes. All the attributes must be on the same line; this appears
+to be a wordpress limitation.
 </p>
 <code>
 <br/>[ecampaign name1=value1 name2=value2 name3=value3]  
@@ -216,11 +218,10 @@ Attributes can be added to the ecampaign tag. Phrases e.g. the email subject hav
 <h4>Valid Fields</h4>
 <p>All the fields must be declared inside [ecampaign][/ecampaign] brackets on the wordpress post. 
 If no fields are declared, then the form will be constructed using the definitions specified in the site 
-wide templates in the ecampaign settings page. All the attributes must be on the same line; this appears
-to be a wordpress limitation.</p>
+wide templates in the ecampaign settings page.</p>
 
 <table>
-  <tr><td>name</td><td>how it is used</td></tr>
+  <tr><td>Field name</td><td>How field is used</td></tr>
   <tr><td>{to xx.yy@zzz.com}</td><td>A non editable field that holds the target email address(es).</td></tr>
   <tr><td>{subject}</td><td>The editable subject of the outgoing email.</td></tr>
   <tr><td>{body}</td><td>The editable body of the outgoing email. This field is rendered as an HTML textarea. 
@@ -258,7 +259,7 @@ to be a wordpress limitation.</p>
   <tr><td>{counter}</td><td>This is just a string placeholder. The form text is replaced by the number of people that have taken 
   actions on this page/post.</td></tr>  
   
-  <tr><td>{success}</td><td>The field is a holder for the message sent to the site visitor after s/he has completed the campaign action. It can include HTML tags.</td></tr> 
+  <tr><td>{success}</td><td>This is just a string placeholder for the message sent to the site visitor after s/he has completed the campaign action. It can include HTML tags. It's position is irrelevant.</td></tr> 
 
   <tr><td>{friendEmail}</td><td>Adds one empty field. Additional fields/recipients can be added added and removed by the user. 
   (Used by the EcampaignFriend class). </td></tr> 
@@ -268,7 +269,7 @@ to be a wordpress limitation.</p>
 
   <tr><td>{lookup}</td><td>Adds a button to the form which when clicked looks up an email address 
   using a ukpostcode. Used by some classes that extend EcampaignTarget which provides the basic 
-  'send to target'functionality.</td></tr> 
+  'send to target' functionality.</td></tr> 
   
 </table>
 
@@ -279,7 +280,7 @@ To make a field mandatory, append an asterisk to the name of the field e.g. {nam
 
 <h4><a name='fieldAttributes'/>Setting Field Attributes</a></h4>
 <p>
-Attributes can be added to any field. These attributes are conferred to the INPUT, TEXTAREA or DIV elements 
+Attributes can be added to any field. These attributes are conferred to the INPUT, TEXTAREA or DIV element 
 that is being used to create the field. Examples are shown below:
 </p><p>
 {body rows=10 cols=70} adjust size of the textarea holding the body field.
@@ -299,18 +300,70 @@ HTML attribute, most browsers accept additional attributes).
 to curly quotes and 
 <a href='http://www.fayazmiraz.com/disable-auto-curly-quotes-in-wordpress/'>this conversion has to be disabled.</a>.
 </p>
- 
+
+<h3><a name='subscription'>Subscribing site visitors who opt-in to an external email list</a></h3>
+<p>
+Ecampaign can directly add site visitors to <a href="http://www.phplist.com/">PHPList</a> if they 
+opt-in using a checkbox on the form. 
+Successful subscriptions are logged as well as any error and exceptions that occur.  Errors and 
+exceptions are not reported back to the user because any failed subscriptions can be subsequently
+be added manually to PHPList. Note that if a revisiting site visitor unchecks the box, the visitor 
+is not unsubscribed from that list.) 
+</p>
+<p>
+The configuration string is fiddly. At present it consists of:
+</p>
+<code>
+checkbox1='PHPList No' checkbox1='PHPList No' configFile='Full server path to PHPList configuration file'
+</code>
+<p>
+The config file is the standard PHPList config.php file that contains the database username and password etc.  
+It need not be the real file, it could be be just a copy kept locally. The 'PHPList No' is shown in the left hand 
+column of the phplist/public_html/lists/admin/?page=list page. The first list is numbered 1. It is not possible
+to map checkboxes from specific actions specific pages to specific email lists.
+</p>
+<p>
+An example configuration is shown below:
+</p>
+<code>
+checkbox1=6 configFile=/home/web/phplist/public_html/lists/config/config.php
+</code>
+<p>
+In the above example, site visitors who check checkbox1 will be subscribed to PHPList No 6. 
+</p>
+<p>
+The interface to PHPList is provided by the EcampaignPHPList class. 
+PHPlist does not have an API that would allow emails addresses to be easily added. Therefore the 
+ecampaign adds the new subscribers directly to the database. This has been tested against 
+PHPList 2.10.17. However PHPList database schema changes may require changes to EcampapignPHPList.  
+</p>
+<p>
+Subscribing to other email lists could be supported using a different class.
+</p>
+
 <h3><a name='lookup'>Looking up elected representatives by postcode</a></h3>
 <p>
 Several classes under the 'uk' directory support the lookup of email addresses of UK elected representatives.
 To use these classes, specify the path and class of the appropriate PHP file as an ecampaign attribute (see above).
 These files can be removed if you are not using this functionality.
 </p>
-<ul>
-<li>uk/MP to look up MP for a particular UK postcode</li>
-<li>uk/MSP to look up MSP for a particular Scottish postcode</li>
-<li>uk/Councillor to look up councillor for a particular UK postcode</li>
-</ul>
+<table>
+<tr>
+<td>uk/MP</td>
+<td>to look up MP for a particular UK postcode<br/>
+Makes use of http://findyourmp.parliament.uk/api</td> 
+</tr><tr>
+<td>uk/MSP</td>
+<td>to look up MSP for a particular Scottish postcode<br/>
+Makes use of the UK based <a href="http://www.theyworkforyou.com/api/">TheyWorkForYou API</a>. 
+You have to apply for an API key and enter it next to the 'API key' on the settings page.</td>
+</tr><tr>
+<td>uk/Councillor</td><td>to look up councillor for a particular UK postcode.<br/>
+You can restrict the campaign to a particular council by <a href="#attributes">adding 
+the attribute</a> onlyIn=name-of-council to the ecampaign opening tag. Makes use of the UK government service http://openlylocal.com. However not 
+all councils register their councillors email addresses with this site.</td>
+</tr>
+</table>
 <p>
 The only other requirement is to add a {lookup} field to the form, possibly but not necessarily 
 next to the {ukpostcode} field.  Here is an example template to lookup up an M.P.: 
@@ -346,4 +399,31 @@ part in this action.&lt;/div&gt;}
 The MP's constituency will appear next to the lookup button. It should be easy to create a class to lookup politicians in
 other countries by cloning and renaming one of these classes.
 </p>
+
+<h3>Roles</h3>
+<p>
+Anyone with the role of Author or greater (i.e. able to publish posts) can create a new campaign action by creating 
+a new post and embedding a campaign action between [ecampaign] [/ecampaign] tags.
+</p>
+
+<h3>Known restrictions, deficiencies and inflexibilty</h3>
+<ul>
+<li>The site visitor has to have javascript enabled in their browser. There is no fallback mode. It does work on IE6.</li>
+<li>The activist only gets one email, a copy of their own email. There is no thank you email.</li>
+<li>The format of the email sent to campaignEmail is fixed.</li>
+<li>There is currently no Akismet protection but it could be added.</li>
+<li>Some error messages in the javascript are not easily translated.</li>
+<li>Emails sent to verify email addresses contain 4 digit codes which have to be retyped, it is 
+not possible to simply click on a link in the email (which is usually offered).</li>
+<li>The counter value is stored in the metadata for the page and is therefore incremented 
+by all the campaign actions on the same page (if there are more than one).</li>
+</ul>
+
+<h3>Implementation notes</h3> 
+<p>
+Mail is sent directly via the PHPMailer class because it provides access to 
+error messages which aren't available through the wordpress API via wp_mail.
+</p>
+
+
 </body>
