@@ -17,8 +17,8 @@ not the details of the councillors.
 second but sometimes it is slow to respond.
 
 This class is loaded by ecampaign.php when the
-attribute class='ukcouncillor' is added to the ecampaign shortcode
-e.g. [ecampaign class='ukcouncillor'].....[/ecampaign]
+attribute class='uk/Councillor' is added to the ecampaign shortcode
+e.g. [ecampaign class='uk/Councillor'].....[/ecampaign]
 
 This class can be extended, for example, to change the sample message
 depending on the constituency.
