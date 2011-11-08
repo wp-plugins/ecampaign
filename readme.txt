@@ -28,17 +28,18 @@ to one or more friends.
 
 = Features =
 
-* Petition signatures and all other activity/errors/exceptions logged
+* Site visitors name, address, email address can exported as CSV file.
+* Site visitors that opt-in can be subscribed to PHPList.
+* Petition signatures and all other activity/errors/exceptions logged.
 * Optional CAPTCHA support using http://www.phpcaptcha.org/.
 * Email addresses, zipcodes and UK postcodes are client side validated.
 * Optional verification of site visitor's email address.
 * Site visitor can be required to edit email message, by removing optional guidance notes, before sending.
-* When enabled, a simple test mode diverts emails from the target address to the campaign email address.
-* There is only one block of content embedded into one page and user interaction is via AJAX.
-* All error messages are passed back to the visitor as well as being logged.
-* Fields can be added/removed/rearranged and size changed.  
-* Appearance customizable via CSS.
-* Email addresses displayed are antispammed.
+* Test mode prevents emails being sentto the the target address accidentally.
+* No bulky pages, user interaction is via AJAX.
+* Most error messages are returned to the visitor, all are logged.
+* Fields can be added/removed/rearranged/resized changed.  
+* Email addresses displayed are obfuscated to hinder spammers.
 * Log entries are paged, filtered and can be deleted.
 * I18n language translation support for server side messages.
 * Extensions to look up UK MPs and councillors.
@@ -85,6 +86,9 @@ to make it slightly more difficult for spammers.
 Note: If you are using the SMTP transport option offered by PHPMailer, the 
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
+
+= Upgrading from 0.81 = 
+Minor upgrade. 
 
 = Upgrading from 0.80 = 
 Minor bug fix only.
@@ -136,13 +140,17 @@ None yet.
 5. screenshot-6.png - ecampaign settings screen, lower half
 
 == Changelog ==
+= 0.82 =
+* Bug fix: remove quote around downloaded CSV/tabbed filename.
+* Ability to subscribe site visitors to PHPList (see readme.html).
+ 
 = 0.81 =
-* Bug fix: stop the form data being resaved (saved as formList in post metadata) when page accessed. The symptom is that many 'formUpdate' entries can been in log.
+* Bug fix: stop the form data being resaved (saved as formList in post metadata) when page accessed. The symptom is that many 'formUpdate' entries can be seen in the log.
 * Ability to download emails addresses in CSV and tabbed formats on admin/ecampaign log page.
 
 = 0.80 = 
-* Field definition has changed. Each field is wrapped in {}. 
-* Mandatory fields no longer hard coded. Each field can be made mandatory by adding asterisk e.g. {subject*}
+* Field definition has changed. Each field is wrapped in { }. 
+* Mandatory fields no longer hard coded. Each field can be made mandatory by adding asterisk e.g. {subject*}.
 * Petition functionality added.
 * Logging of petition signatures added
 * Sidebar available showing ecampaign activity.  
@@ -190,6 +198,9 @@ None yet.
 * First version
 
 == Upgrade Notice ==
+= 0.82 = 
+* Upgrade not required.
+
 = 0.81 = 
 * Bug fix. Upgrade recommended.
 
@@ -244,21 +255,18 @@ Below there is an simple example of the text you could place on on a wordpress p
     Please email Islington Council about the roamer parking scheme which will increase traffic.
     [/ecampaign]
 
-More detail and onfiguration options is provided in the readme.html in the plugin directory. 
+More detail and configuration options is provided in the readme.html in the plugin directory. 
 (Most recent version http://plugins.svn.wordpress.org/ecampaign/trunk/readme.html)
 
 == Known restrictions, deficiencies and inflexibilty == 
 
-* The site visitor has to have javascript enabled in their browser. There is no fallback mode.
+* The site visitor has to have javascript enabled in their browser. There is no fallback mode. It does work on IE6.
 * The activist only gets one email, a copy of their own email. There is no thank you email.
 * The format of the email sent to campaignEmail is fixed.
 * There is currently no Akismet protection but it could be added.
 * Some error messages in the javascript are not easily translated.
 * Emails sent to verify email addresses contain 4 digit codes which have to be retyped, it is 
 not possible to simply click on a link in the email (which is usually offered).
-* The verify code in the email must be entered and submitted before the captcha code because 
-the captcha code can only be checked once, subsequent attempts will fail.  Not that ecampaign
-itself does not start a session. However the securimage (captcha) does start a session.
 * The counter value is stored in the metadata for the page and is therefore incremented 
 by all the campaign actions on the same page (if there are more than one).
 
