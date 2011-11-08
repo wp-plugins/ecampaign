@@ -8,14 +8,11 @@ Supports the use of a %lookup button in a form.
 The lookup function takes the value of the field 'ukpostcode'
 and looks up the corresponding UK councillors using two steps.
 
-It makes use of the UK government service http://openlylocal.com
-Not all councils publish deatils of their councillors through this
-service. (At the time of writing (Sep 2011), it typically takes one
-second but sometimes it is slow to respond.
+It makes use of http://findyourmp.parliament.uk/api
 
 This class is loaded by ecampaign.php when the
-attribute class='ukmp' is added to the ecampaign shortcode
-e.g. [ecampaign class='ukmp'].....[/ecampaign]
+attribute class='uk/MP' is added to the ecampaign shortcode
+e.g. [ecampaign class='uk/MP'].....[/ecampaign]
 
 */
 

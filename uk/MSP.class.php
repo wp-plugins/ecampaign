@@ -11,8 +11,8 @@ and looks up the corresponding constituency MSP using two steps.
 
 
 This class is loaded by ecampaign.php when the
-attribute class='ukmp' is added to the ecampaign shortcode
-e.g. [ecampaign class='ukmp'].....[/ecampaign]
+attribute class='uk/MSP' is added to the ecampaign shortcode
+e.g. [ecampaign class='uk/MSP'].....[/ecampaign]
 
 */
 
