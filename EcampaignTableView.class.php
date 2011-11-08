@@ -158,8 +158,8 @@ class EcampaignTableView
     $q1 = $this->createQuery(array("format"=>"CSV","noheader"=>true, "offset"=>0, "pageSize"=>100000));
     $q2 = $this->createQuery(array("format"=>"tab","noheader"=>true, "offset"=>0, "pageSize"=>100000));
     $sb->add(
-      "<a title='Download $totalRows rows as Comma Separated Values' href='?$q1'>CSV</a>
-       <a title='Download $totalRows rows as tab separated values' href='?$q2'>Tabs</a>")
+      "Download <a title='Download $totalRows rows as Comma Separated Values' href='?$q1'>CSV</a>
+                <a title='Download $totalRows rows as tab separated values' href='?$q2'>Tabs</a>")
        ->wrap("span", "class='ecinline'");
   }
 
