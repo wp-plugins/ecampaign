@@ -184,7 +184,7 @@ class MSP extends EcampaignTarget
 
     $error = array();
     if (0 < preg_match("$<error>(.+?)<\/error>$", $xml, $error))
-      throw new Exception($error[1] . " from " . $url);
+      throw new Exception($error[1]);
 
     $xmlnodes = simplexml_load_string($xml);
 
