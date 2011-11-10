@@ -1,0 +1,39 @@
+/** widen the first column in the settings 
+    page to make room for all the help text */
+
+#ec-settings th
+{
+  width : 250px ; 
+}
+
+/**
+ * log administration page 
+ */
+ 
+
+#eclog,  #eclog div {
+  background-color: #eee;
+  padding: 2px ;  
+}
+
+
+#eclog span.ecinline {
+  background-color: white;
+  padding: 6px 0px  ;
+  margin : 4px 20px 4px 2px ; 
+}
+
+ 
+#eclog span.ecinline span, #eclog span.ecinline a, 
+#eclog span.ecinline label, #eclog span.ecinline input 
+{
+  margin: 4px 5px ;   
+}
+
+.infoMore, .infoBlock {
+  display : none;
+}
+
+.infoMore {
+	color : blue ;
+}
