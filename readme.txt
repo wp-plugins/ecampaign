@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== ecampaign ===
 Contributors: john ackers
 Donate link: 
 Tags: advocacy, activism, email, petition, ecampaign
