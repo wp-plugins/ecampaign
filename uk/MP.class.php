@@ -81,10 +81,30 @@ class MP extends EcampaignTarget
 
     $constituency = self::request($uri, "/constituency");
 
+    $memberEmail = (String) $constituency->{"member-email"} ;
+    $memberName = (String) $constituency->{"member-name"}  ;
+
+    // Some MPs email addresses are not available (or have been removed)
+    // from the database accessible through the API.
+    // In that event, get the member biography from the constituency page
+    // and scrape through it for a likely email address i.e. one that contains
+    // the MPs name. Note some MPs often have office staff handle all their mail.
+
+    if (empty($memberEmail))
+    {
+      $biographyUrl = (String) $constituency->{"member-biography-url"};
+      if (empty($biographyUrl))
+        throw new Exception("Unable to find biography (and so email) for ".(String) $constituency->{"member-name"});
+
+      $memberEmail = self::lookupEmailFromName($memberName, $biographyUrl);
+    }
+    if (empty($memberEmail))
+      throw new Exception("Unable to find email address for ".(String) $constituency->{"member-name"});
+
+
     $target = array();
-    $target['name']  = (String) $constituency->{"member-name"} ;
-    $target['email'] = $this->testMode->isDiverted() ?
-      $this->fieldSet->campaignEmail : (String) $constituency->{"member-email"} ;
+    $target['name']  =   $memberName ;
+    $target['email'] = $this->testMode->isDiverted() ? $this->fieldSet->campaignEmail : $memberEmail;
 
     $this->log->write("lookup", $this->fieldSet, (String) $constituency->name);
     return array("target" => array($target),
@@ -128,5 +148,63 @@ class MP extends EcampaignTarget
     }
     return $xmlnodes[0];
   }
+
+
+  /**
+   * Trying to find an MPs email address. Search the MPs web page and
+   * look for an address that matches (ideally first and) last name.
+   * Something similar used on MSP lookup page.
+   *
+   * @param unknown_type $firstName
+   * @param unknown_type $lastName
+   * @param unknown_type $url
+   */
+
+  private static function lookupEmailFromName($name, $url)
+  {
+    if (true)
+    {
+      $header = array();
+      $header[] = "Cache-Control: max-age=0";
+      $header[] = "User-Agent: Mozilla/5.0 (X11; Linux i686) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.57 Safari/534.24" ;
+      $header[] = "Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;";
+      $header[] = "Accept-Language: en-GB,en-US;q=0.8,en;q=0.6";
+      $header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.8,en;q=0.6";
+
+      $ch = curl_init($url);
+
+      curl_setopt($ch, CURLOPT_HEADER, 0);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
+      $mpPage = curl_exec($ch);
+    }
+    if (empty($name))
+      throw new Exception("Name is empty");
+
+    $dottedName = str_replace(" ", ".", $name);
+
+    //try traditional firstname.lastname
+    $mpRegex = '$href="mailto:([^"]*?' . $dottedName . '[^"]*?)"$i';
+    $num = preg_match_all($mpRegex, $mpPage, $matches);
+    if ($num == 1)
+      return $matches[1][0];
+
+    // then try lastname only
+    $names = explode(" ", $name);
+    $lastName = $names[count($names)-1];
+
+    $mpRegex = '$href="mailto:([^"]*?' . $lastName . '[^"]*?)"$i';
+    $num = preg_match_all($mpRegex, $mpPage, $matches);
+    if ($num == 1)
+      return $matches[1][0];
+
+    if ($num > 1)
+      throw new Exception("Unable to find $name and multiple email addresses match $lastName on page $url");
+
+    return "" ;
+  }
 }
+
 ?>
