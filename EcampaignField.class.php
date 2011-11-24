@@ -184,22 +184,24 @@ class EcampaignField
     return ($field);
   }
 
-
   /**
    * Parse a string of attributes and return map of key value pairs
+   * (cloned from EcampaignField)
    *
    * Attributes can be single or double quoted.
-   *
+   * regexp test string: ab-c_d=%abc123 winpath="C:\john smith" upath=/home/john/web cdef='ede dddew'
    * @param $attributes
+   * @param $unquote if true, remove quotes around arguments
    */
 
-  static function parseAttributes($attributes)
+  static function parseAttributes($attributes, $unquote=true)
   {
     $map = array();
-    $count = preg_match_all("$(\w+)=(\w+|[\'\"].+[\'\"])$", $attributes, $matches);
+    $count = preg_match_all("!(\w[\w-]+)=([\w\\\/\.%]+|([\'\"])(.+?)\\3)!", $attributes, $matches);
     for ($j = 0  ; $j < $count ; $j++)
     {
-      $map[$matches[1][$j]] = $matches[2][$j];  // build map of attributes
+      list($key, $value, $unquotedValue) = array($matches[1][$j],$matches[2][$j],$matches[4][$j]);
+      $map[$key] = ($unquote && !empty($unquotedValue)) ? $unquotedValue : $value ;
     }
     return $map ;
   }
@@ -216,9 +218,9 @@ class EcampaignField
 
   static function mergeAttributes($attributes)
   {
-    $map = self::parseAttributes($attributes);
+    $map = self::parseAttributes($attributes, false);
     $s = "" ; foreach($map as $key=>$val)       // implode map.
-    $s.= $key."=".$val." " ;
+      $s.= $key."=".$val." " ;                  // relying on existing quotes
     return $s ;
   }
 
