@@ -15,7 +15,7 @@ class EcampaignPHPList
 
   function checkConfiguration($connectDB=false)
   {
-    $this->args = self::parseAttributes(get_option('ec_subscriptionParams'));
+    $this->args = EcampaignField::parseAttributes(get_option('ec_subscriptionParams'), true);
     $configFile = $this->args['configFile'];
     if (empty($configFile))
       return __("Configuration error: configFile not set.");
@@ -68,27 +68,6 @@ class EcampaignPHPList
 
     mysql_close(self::$db);
   }
-
-  /**
-   * Parse a string of attributes and return map of key value pairs
-   * (cloned from EcampaignField)
-   *
-   * Attributes can be single or double quoted.
-   *
-   * @param $attributes
-   */
-
-  static function parseAttributes($attributes)
-  {
-    $map = array();
-    $count = preg_match_all("$(\w+)=([\w\\\/\.]+|[\'\"].+[\'\"])$", $attributes, $matches);
-    for ($j = 0  ; $j < $count ; $j++)
-    {
-      $map[$matches[1][$j]] = $matches[2][$j];  // build map of attributes
-    }
-    return $map ;
-  }
-
 
   /**
    * the next functions have been lifted (and fixed) from phplist.php
