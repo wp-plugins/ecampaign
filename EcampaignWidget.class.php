@@ -22,17 +22,16 @@ class EcampaignWidget extends WP_Widget {
 	function __construct() {
 		parent::WP_Widget( /* Base ID */'ecampaign_widget', /* Name */'Ecampaign Activity', array( 'description' => 'List recently completed campaign actions'));
 	}
-//,(?:(?:\s*)([a-zA-Z\s]*),)*
-// yuk (,\s*[a-zA-Z\s]*)(,\s*[a-zA-Z\s]*)
-//,\s*([a-zA-Z\s]*\s*)
+
 	/** @see WP_Widget::widget */
 	function widget( $args, $instance ) {
 		extract( $args );
 //		$title = apply_filters( 'ecampaign', $instance['title');
 
-		$log = new EcampaignLog;   $log->__construct();
+		$log = new EcampaignLog;
 		$limit = 10 ;
-		$rows = $log->getRecentActivists($instance['postID'], $limit);
+		$filterByPostID = $instance['postID'];
+		$rows = $log->getRecentActivists($filterByPostID, $limit);
 		if (count($rows) == 0)
 		  return ;
 
@@ -57,10 +56,18 @@ class EcampaignWidget extends WP_Widget {
       $num = preg_match_all('$\s*([a-zA-Z]*)$', $row[Ecampaign::sVisitorName], $nameMatches);
       $firstName = $nameMatches[1][0];
       // get all the lines that don't have digits and end in a comma
+      // we don't want to show a street address or apartment/flat number
 		  $num = preg_match_all('$\s*([a-zA-Z\s]*\s*),$', $row['address'], $townMatches);
-		  $num = count($townMatches[1]); $town = $townMatches[1][$num-1];  // last line
+		  $num = count($townMatches[1]);
+		  $town = $num > 1 ? ", ".$townMatches[1][$num-1] : "" ;  // take last line if two or more lines in address
 
-			echo "<li>$firstName, $town</li>";
+		  $postID = $row[Ecampaign::sPostID] ;
+			if ($filterByPostID > 0)
+			  $line = "<li>$firstName$town</li>";
+		  else
+		    $title = get_the_title($postID);
+		    $line = "<li>$firstName$town<br/><a href='".get_permalink($postID)."'>".get_the_title($postID)."</a></li>";
+			echo $line ;
 		}
 		echo "</ul>";
 		echo $instance['body'] ;
@@ -108,8 +115,9 @@ class EcampaignWidget extends WP_Widget {
       $body = esc_attr( $instance[ 'body' ] );
 		}
 		else {
-      $title = __( 'Title', 'text_domain' );
+      $title =  __( "Latest actions", 'text_domain' );
 		  $limit = 8 ;
+		  $body = __("");
 		}
 		?>
 		<p>
@@ -117,7 +125,7 @@ class EcampaignWidget extends WP_Widget {
 		<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" />
     <label for="<?php echo $this->get_field_id('limit'); ?>"><?php _e('Number of rows:'); ?></label>
     <input class="widefat" id="<?php echo $this->get_field_id('limit'); ?>" name="<?php echo $this->get_field_name('limit'); ?>" type="text" value="<?php echo $limit; ?>" />
-    <label for="<?php echo $this->get_field_id('postID'); ?>"><?php _e('Post ID:  (show just this campaign)'); ?></label>
+    <label for="<?php echo $this->get_field_id('postID'); ?>"><?php _e('Post ID: (leave blank to show all)'); ?></label>
     <input class="widefat" id="<?php echo $this->get_field_id('postID'); ?>" name="<?php echo $this->get_field_name('postID'); ?>" type="text" value="<?php echo $postID; ?>" />
     <label for="<?php echo $this->get_field_id('body'); ?>"><?php _e('Text below list:'); ?></label>
     <input class="widefat" id="<?php echo $this->get_field_id('body'); ?>" name="<?php echo $this->get_field_name('body'); ?>" type="text" value="<?php echo $body; ?>" />
