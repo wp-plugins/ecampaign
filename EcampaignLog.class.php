@@ -11,6 +11,11 @@ class EcampaignLog
   static $tableName ;
   static $dbVersion = "0.2" ;
 
+  const tSend = 'send' ;
+  const tSign = 'sign' ;
+  const tVerify = 'verify' ;
+  const tVerified = 'verified' ;
+
   function __construct()
   {
     global $wpdb ;
@@ -82,10 +87,10 @@ class EcampaignLog
   function getRecentActivists($postID, $limit)
   {
     global $wpdb ;
-    $cols = Ecampaign::sVisitorName.",address, UNIX_TIMESTAMP(date) as stamp" ;
+    $cols = Ecampaign::sPostID.",".Ecampaign::sVisitorName.",address, UNIX_TIMESTAMP(date) as stamp" ;
     $where = empty($postID) ? "" : " and postID=$postID ";
-    $where .= " and (state='". Ecampaign::tSent . "'" .
-             " or   state='". Ecampaign::tSigned . "') " ;
+    $where .= " and (state='". self::tSend . "'" .
+             " or   state='". self::tSign . "') " ;
 
     $drows = $wpdb->get_results("SELECT $cols FROM ".self::$tableName." WHERE 1=1 $where ORDER BY date desc LIMIT $limit", ARRAY_A);
     return $drows ;
