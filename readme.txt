@@ -4,7 +4,7 @@ Donate link:
 Tags: advocacy, activism, email, petition, ecampaign
 Requires at least: 3.0.1
 Tested up to: 3.2.1
-Stable tag: trunk
+Stable tag: 0.82
 
 Allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post.
