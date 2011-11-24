@@ -238,7 +238,7 @@ class EcampaignTableView
             $info = explode("\r\n", $dval); // info expected to be a block
             $dcols[$dkey] = $info[0] ;    // display the first lines
             if (count($info) > 1)         // display all lines whene user clicks/hovers or whatever
-              $dcols[$dkey] .= "<span style='color:blue'>&nbsp;more...</span><div class='infoBlock'>".implode("<br/>", $info)."</div>" ;
+              $dcols[$dkey] .= "<span class='infoMore'>&nbsp;more</span><div class='infoBlock'>".implode("<br/>", $info)."</div>" ;
             break;
         }
       }
