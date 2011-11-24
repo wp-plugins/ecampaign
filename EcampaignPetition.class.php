@@ -52,7 +52,7 @@ class EcampaignPetition extends Ecampaign
       throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
     }
 
-    $this->log->write("verification", $fieldSet, "code:". $code);
+    $this->log->write(EcampaignLog::tVerify, $fieldSet, "code:". $code);
 
     return array("success" => true, //"getCode" => true,
                  "callbackJS" => 'revealVerificationField',
@@ -144,7 +144,7 @@ class EcampaignPetition extends Ecampaign
         return array("success" => false,
                      "msg" => __("The code entered $userSuppliedVerificationCode does not appear to match the value sent by email."));
       }
-      $this->log->write("verified", $fieldSet, $this->infoMap);
+      $this->log->write(EcampaignLog::$tVerified, $fieldSet, $this->infoMap);
     }
 
     // Increment counter. Note that this read-and-update is not an
@@ -172,7 +172,7 @@ class EcampaignPetition extends Ecampaign
 
     $fieldSet = $this->fieldSet;
 
-    $this->log->write("sign", $fieldSet, $this->infoMap);
+    $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);
     $this->subscribe($fieldSet);
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $this->successMessage));
 
@@ -222,7 +222,7 @@ class EcampaignPetition extends Ecampaign
     if (!$this->testMode->isNormal())
       $this->infoMap[] = 'test mode: ' . $this->testMode->toString();
 
-    $this->log->write("sent", $fieldSet, $this->infoMap);
+    $this->log->write(EcampaignLog::tSend, $fieldSet, $this->infoMap);
     $this->subscribe($fieldSet);
 
     // forward a similar version of the email to the campaign but add the checkfields that they have clicked
@@ -255,13 +255,15 @@ class EcampaignPetition extends Ecampaign
 
   function subscribe($fieldSet)
   {
-    $listClassPath = get_option('ec_subscriptionClass');
-    if (empty($listClassPath))
-      return ;
-    $listClass = _createFromClassPath($listClassPath);
     try {
-      $listClass->subscribe($fieldSet->visitorEmail,
-                            $fieldSet->checkbox1, $fieldSet->checkbox1);
+      $listClassPath = get_option('ec_subscriptionClass');
+      if (empty($listClassPath))
+        return ;
+
+      $list = _createFromClassPath($listClassPath);
+
+      $list->subscribe($fieldSet->visitorEmail,
+                       $fieldSet->checkbox1, $fieldSet->checkbox1);
 
       $this->log->write("subscribe", $fieldSet, $this->infoMap);
     }
