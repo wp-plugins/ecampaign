@@ -74,11 +74,7 @@ class Ecampaign
 
     sTargetEmail = 'targetEmail',
     sCampaignEmail = 'campaignEmail',
-    sSuccessMessage = 'success',  // was previously the thank you message
-
-    tSent = 'sent',
-    tSigned = 'signed' ;
-
+    sSuccessMessage = 'success' ; // was previously the thank you message
 
   /**
    *
@@ -158,7 +154,7 @@ class Ecampaign
   function parseTemplate($layout, $pageAttributes)
   {
     $parsedFields = array();
-    preg_match_all('${(\w+)(\*)?((?:\s+[\w]+=(?:[\w]+|[\'\"\”][^\'\"\”]+[\'\"\”]))*)\s*([^}]*)}$', $layout, $parsedFields);
+    preg_match_all('${(\w+)(\*)?((?:\s+[\w][\w-]+=(?:[%]?[\w]+|[\'\"\”][^\'\"\”]+[\'\"\”]))*)\s*([^}]*)}$', $layout, $parsedFields);
     // the label and default sizes of all the supported fields are listed above.
     // special handling is handled in the case statement below.
 
@@ -333,7 +329,7 @@ class Ecampaign
 
     foreach ($templateFields as $noun => $efield)
     {
-      $snippet = $this->createField($noun, $efield, $pageAttributes);
+      $snippet = $this->createField($noun, $efield, $pageAttributes, $templateFields);
       if (isset($snippet))
       {
         $html = str_replace($efield->wholeField, $snippet, $html);
