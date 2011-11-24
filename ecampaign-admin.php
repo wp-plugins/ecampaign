@@ -267,15 +267,31 @@ function ec_options()
         $listClassPath = get_option('ec_subscriptionClass');
         if (!empty($listClassPath))
         {
-          $listClass = _createFromClassPath($listClassPath);
-          echo "<br/><span style='color : red'>" . $listClass->checkConfiguration() . "</span>" ;
+          try {
+            $list = _createFromClassPath($listClassPath);
+          }
+          catch (Exception $e)
+          {
+            echo "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
+          }
         }
         ?></td>
         </tr>
 
         <tr valign="top">
         <th scope="row"><?php echo $prompt["ec_subscriptionParams"] ?></th>
-        <td><textarea rows=4 cols=35 name="ec_subscriptionParams"><?php echo get_option('ec_subscriptionParams'); ?></textarea></td>
+        <td><textarea rows=4 cols=35 name="ec_subscriptionParams"><?php echo get_option('ec_subscriptionParams'); ?></textarea>
+        <?php if (!empty($list))
+        {
+          try {
+            echo "<br/><span style='color : red'>" . $list->checkConfiguration() . "</span>" ;
+          }
+          catch (Exception $e)
+          {
+            echo "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
+          }
+        }
+        ?></td>
         </tr>
 
         <tr valign="top">
