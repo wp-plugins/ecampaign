@@ -1,6 +1,6 @@
 === ecampaign ===
 Contributors: john ackers
-Donate link: 
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=john%2eackers%40ymail%2ecom&lc=GB&item_name=John%20Ackers&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: advocacy, activism, email, petition, ecampaign
 Requires at least: 3.0.1
 Tested up to: 3.2.1
@@ -77,6 +77,8 @@ Note: If you are using the SMTP transport option offered by PHPMailer, the
 SMTP parameters must be configured either in php.ini or, for developement
 or testing, directly in the top of wp-includes/class-phpmailer.php.
 
+= Upgrading from 0.82 = 
+Minor upgrade. 
 
 = Upgrading from 0.81 = 
 Minor upgrade. 
@@ -119,7 +121,13 @@ you are currently using and may have edited and corrected it if necessary.
 
 == Frequently Asked Questions ==
 
-None yet.
+= How do you download email addresses in CSV format =
+
+1. Go to the dashboard > Tools > ecampaign log (or by wp-admin/tools.php?page=ecampaign-log)
+2. Click on 'view all actions'
+3. select 'send' or 'sign' 
+4. select 'filter'
+5. click on CSV
 
 == Screenshots ==
 
@@ -131,6 +139,11 @@ None yet.
 5. screenshot-6.png - ecampaign settings screen, lower half
 
 == Changelog ==
+
+= 0.83 =
+* Widget will now display all campaign actions if post id not specified.
+* public and admin js and css separated.
+
 = 0.82 =
 * Bug fix: remove quote around downloaded CSV/tabbed filename.
 * Ability to subscribe site visitors to PHPList (see readme.html in the release).

@@ -1,0 +1,163 @@
+/** ecampaign public.css
+ *
+ * It may be necessary to edit, replace or remove this file depending on your theme. 
+ **/
+
+.ecform {
+  clear: both;
+  background-color: #F4F4F4; 
+  padding: 10px ;
+  margin-top : 20px ;
+  margin-bottom : 20px ; 
+  overflow : hidden;
+}
+
+/* line wrappers */
+
+.ecrow
+{
+  clear: both ; 
+  padding-top: 4px  ;   /* put space between rows */
+  padding-bottom: 4px  ;   /* put space between rows */
+}
+
+/* float most elements but don't float div.ecrow or IE 7 will screw up */
+
+.ecrow label, .ecrow input, .ecrow select,  
+.ecrow .ecinputwrap, .ecrow .eclookup, .ecrow .ecsend, .ecrow .ecstatus,
+.ecrow .text-test-mode
+{
+  float: left ; 
+}
+
+.ecrow .ecstatus
+{
+  padding-left: 5px  ;   
+  padding-right: 5px  ; 	
+}
+
+.ecrow .ecinputwrap
+{
+  padding-right: 5px  ;  
+}
+
+.ec-target label, .ec-target .ecsend
+{
+  min-width: 80px;
+}
+
+
+.ec-friend label, .ec-friend .ecsend 
+{
+  min-width: 150px;
+}
+/*
+.ecform label.float-over-input
+{
+  position : absolute ;
+  color: grey;
+}
+
+.ecrow label.float-over-input, 
+.ecrow .ecinputwrap, .ecrow .ecinputwrap input 
+{
+  float : none ; 
+}
+*/
+
+.ecform label#lab-to, .ecform label#lab-subject, .ecform label#lab-friendSubject
+{
+  min-width: 0px;  /** tight specificity needed for ie7 */
+}
+
+/* float input otherwise it go right */
+
+.ec-target input[type=checkbox] 
+{
+  float: left; 
+}
+
+.ecform .text-test-mode, .ecform .text-counter, .ecform .text-contact
+{  
+  font-size: x-small ;
+}
+
+.ecform .text-contact {
+  padding: 2px 0px;
+}
+
+.ecform a {
+  font-size: x-small ;
+  font-style: italic ;
+  text-decoration:none;
+}
+
+
+.ec-friend .ecrow #ec-friends-list 
+{
+  padding: 0px 0 0px 0 ;   
+}
+
+
+.ec-friend .ecrow #ec-friends-list  div.ecfriend, .ec-friend #ec-add-friend 
+
+{
+  clear:both;
+  padding: 0px 0 0px 0 ;   
+}
+
+
+.eccode.hidden, .ecform.hidden
+{
+  display:none ;
+}
+
+.ecform div.ecrow div.ecstatus
+{
+  padding-left: 10px ; 
+}
+
+
+/** put error messages in a different colour */
+
+.ecform .ecOk
+{
+  color : blue ;
+}
+
+.ecform .ecError
+{
+  color : red ;
+}
+
+.ecform .bolder
+{
+  font-weight: bolder;
+}
+
+
+/**
+ * remove shadow borders from input boxes
+ * because it's rarely used by other campaign sites. 
+ */
+ 
+.ecform input[type=text] 
+{
+  border-style : solid ; 
+  border-color : #e0e0e0 ; 
+  border-width : 1px ;
+}
+
+
+.ecform div.body
+{
+  margin : 10px ;
+  background : lightyellow ;
+}
+
+.ecsocial
+{
+  min-width: 120px;
+  margin-left : 20px;
+  margin-right : 20px;
+}

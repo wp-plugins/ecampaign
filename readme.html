@@ -7,7 +7,7 @@
 </head>
 <body>
 <h3>Ecampaign Admin guide</h3>
-<p>Updated for version 0.82  6th Nov 2011</p>
+<p>Updated for version 0.83  14th Nov 2011</p>
 <h3>Overview</h3>
 A plugin that allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post. Petition signatures and email activity is logged
@@ -317,8 +317,8 @@ The configuration string is fiddly. At present it consists of:
 checkbox1='PHPList No' checkbox1='PHPList No' configFile='Full server path to PHPList configuration file'
 </code>
 <p>
-The config file is the standard PHPList config.php file that contains the database username and password etc.  
-It need not be the real file, it could be be just a copy kept locally. The 'PHPList No' is shown in the left hand 
+The config file is PHPList's own config.php that contains the database username and password etc.
+It need not be the actual file, it could be be just a copy kept locally. The 'PHPList No' is shown in the left hand 
 column of the phplist/public_html/lists/admin/?page=list page. The first list is numbered 1. It is not possible
 to map checkboxes from specific actions specific pages to specific email lists.
 </p>
@@ -326,7 +326,7 @@ to map checkboxes from specific actions specific pages to specific email lists.
 An example configuration is shown below:
 </p>
 <code>
-checkbox1=6 configFile=/home/web/phplist/public_html/lists/config/config.php
+checkbox1=6 configFile="/home/web/phplist/public_html/lists/config/config.php"
 </code>
 <p>
 In the above example, site visitors who check checkbox1 will be subscribed to PHPList No 6. 
@@ -337,8 +337,17 @@ PHPlist does not have an API that would allow emails addresses to be easily adde
 ecampaign adds the new subscribers directly to the database. This has been tested against 
 PHPList 2.10.17. However PHPList database schema changes may require changes to EcampapignPHPList.  
 </p>
-<p>
-Subscribing to other email lists could be supported using a different class.
+<h3>Subscribing site visitors to other email lists</h3>
+<p>It is possible to use another class to subscribe to other lists.</p>
+The class should implement the methods: 
+<ul>
+<li>subscribe()  invoked every time a site visitor does a 'send' or 'sign'
+</li>
+<li>checkConfiguration() invoked when the site admin accesses the settings page and can return a string 
+containing any error message which appears on the settings page. 
+</li>
+</ul>
+<p>The class should be present in a file with the suffix 'class.php'.  Take a look at EcampaignPHPList.class.php as an example.
 </p>
 
 <h3><a name='lookup'>Looking up elected representatives by postcode</a></h3>

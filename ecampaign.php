@@ -3,9 +3,9 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.82
+ Version: 0.83
  Author: John Ackers
- Author URI: john.ackers ymail.com
+ Author URI: john.ackers HATT ymail.com
 
  Copyright 2011  John Ackers
 
@@ -42,9 +42,9 @@ function ecampaign_short_code($attributes, $body)
     'friendSubject'  => '',
     'campaignEmail'  =>  get_option('ec_campaignEmail'),
     'class' => 'EcampaignTarget',
-    'onlyIn' => null,
+    'onlyIn' => null,             // restricts campaign to particular area
     'notIn' => null,
-    'hidden' => null,
+    'hidden' => null,             // form initially hidden
     'testMode' => EcampaignTestMode::sNormal
     ), $attributes);
 
@@ -61,18 +61,13 @@ function ecampaign_short_code($attributes, $body)
 
 
 /**
- * runs when site visitor clicks on send and initiates ajax post
- * @return unknown_type
+ * Runs when site visitor clicks on lookup/sign/send and initiates ajax post
+ * convert exceptions thrown by handlers into structured responses encoded as json.
+ * @return it does not, it always exits.
  */
 
 function ecampaign_ajax_post() {
-  /**
-   * entry point from ecampaign_post
-   * convert exceptions thrown by handlers into
-   * structured responses encoded as json.
-   *
-   * @return it does not, it always exits.
-   */
+
     $ecampaign = null;
     try {
 
@@ -109,7 +104,10 @@ function ecampaign_ajax_post() {
 function _createFromClassPath($classPath)
 {
   $classPath = isset($classPath) ? $classPath : "Ecampaign" ;
-  include_once dirname(__FILE__). "/" . $classPath . ".class.php" ;
+  $classFile = dirname(__FILE__). "/" . $classPath . ".class.php" ;
+  if (!file_exists($classFile))
+    throw new Exception (__("Cannot open:$classFile"));
+  include_once $classFile ;
   $classPath = split('/',$classPath); // loose the directory
   $class = $classPath[count($classPath)-1] ;
   return new $class ;
@@ -122,9 +120,9 @@ function _createFromClassPath($classPath)
  */
 
 function ecampaign_load() {
-  wp_enqueue_style('ecampaign-style', plugin_dir_url( __FILE__ ) . 'ecampaign.css');
+  wp_enqueue_style('ecampaign-style', plugin_dir_url( __FILE__ ) . 'public.css');
 
-  wp_enqueue_script( 'ecampaign-ajax-request', plugin_dir_url( __FILE__ ) . 'ecampaign.js', array('jquery'));
+  wp_enqueue_script( 'ecampaign-ajax-request', plugin_dir_url( __FILE__ ) . 'public.js', array('jquery'));
   wp_localize_script('ecampaign-ajax-request', 'ecampaign', array( 'ajaxurl' => admin_url('admin-ajax.php')));
 
   if (function_exists('load_plugin_textdomain')) {
@@ -133,9 +131,7 @@ function ecampaign_load() {
 }
 
 
-add_action('init', 'ecampaign_load', 1);
 
-add_shortcode('ecampaign', 'ecampaign_short_code');
 
 // todo add lookup !!!!  class , method.  0 code handling
 
@@ -146,7 +142,7 @@ function ecampaign_activation()
   include_once dirname(__FILE__) . '/ecampaign-admin.php';  // load only for admin pages
   ec_activation();
 }
-register_activation_hook(plugin_basename(__FILE__), 'ecampaign_activation');
+
 
 
 function ecampaign_uninstall()
@@ -155,10 +151,16 @@ function ecampaign_uninstall()
   include_once dirname(__FILE__) . '/ecampaign-admin.php';  // load only for admin pages
   ec_uninstall();
 }
-register_uninstall_hook(__FILE__, 'ecampaign_uninstall');
 
 
 // invoked when in wp-admin and only when plugin is active
+
+function ecampaign_admin_enqueue_scripts()
+{
+  wp_enqueue_style('ecampaign-admin-style', plugin_dir_url( __FILE__ ) . 'admin.css');
+  wp_enqueue_script( 'ecampaign-admin-js', plugin_dir_url( __FILE__ ) . 'admin.js', array('jquery'));
+}
+
 
 function ecampaign_admin_menu()
 {
@@ -177,18 +179,22 @@ function ecampaign_add_settings_link($links, $file)
   return $links;
 }
 
-add_filter('plugin_action_links', 'ecampaign_add_settings_link', 10, 2 );
-
 
 if (is_admin())
 {
   add_action('wp_ajax_ecampaign',        'ecampaign_ajax_post');
   add_action('wp_ajax_nopriv_ecampaign', 'ecampaign_ajax_post');
   add_action('admin_menu',               'ecampaign_admin_menu');
+  add_action('admin_enqueue_scripts',    'ecampaign_admin_enqueue_scripts');
+  add_filter('plugin_action_links',      'ecampaign_add_settings_link', 10, 2 );
+
+  register_activation_hook(plugin_basename(__FILE__), 'ecampaign_activation');
+  register_uninstall_hook(__FILE__, 'ecampaign_uninstall');
 }
 else
 {
-
+  add_action('init', 'ecampaign_load', 1);
+  add_shortcode('ecampaign', 'ecampaign_short_code');
 }
 
 // modified version of wordpress function that allows the
@@ -208,7 +214,6 @@ function shortcode_atts_case_sensitive($pairs, $atts) {
 }
 
 include_once dirname(__FILE__). "/EcampaignWidget.class.php" ;
-
 add_action( 'widgets_init', create_function( '', 'register_widget("EcampaignWidget");' ) );
 
 
