@@ -78,7 +78,7 @@ class EcampaignPetition extends Ecampaign
 
     if (0 < preg_match("/([\[][^\]]*\])/", $fieldSet->body))
     {
-      return (array("success"=>false, "msg" =>__("Please note guidance inside the square brackets [ ] in the message")));
+      return (array("success"=>false, "msg" =>__("Please replace the text in the message wrapped in square brackets with your own words.")));
     }
 
     self::validateEmail($fieldSet->visitorEmail, "visitorEmail"); // throws exception if fails.
@@ -212,7 +212,7 @@ class EcampaignPetition extends Ecampaign
          ->add($fieldSet->postalAddress);
     $mailer->Body = $text->asBlock();
 
-    $this->infoMap[] = 'recipients: ' . ($recipientString = implode(', ', $fieldSet->recipients));
+    array_unshift($this->infoMap,'recipients: ' . ($recipientString = implode(', ', $fieldSet->recipients)));
 
     $delivery = $this->testMode->isSuppressed() ? 1 : ($mailer->Send() ? 2 : 0);
 

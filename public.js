@@ -157,6 +157,8 @@ ecam.onClickSubmit = function (buttonElement, phpClass, phpMethod)
               case  'revealForm' :              ecam.revealForm(response, button, formRoot); break;   
             }
           }
+          if (response.regexp != undefined) 
+            ecam.updateMessageBody(response.regexp, button, formRoot);
         }
       }
     }
@@ -227,6 +229,19 @@ ecam.updateStatus = function(status, success, msg)
  * call back when after postcode/zipcode has been looked up.
  * Update email message fields with new data if supplied
  */
+
+
+
+ecam.updateMessageBody = function (regexp, button, formRoot)
+{  
+  var body = formRoot.find("textarea[name='body']").first();
+  if (ecam.virginBody == undefined)
+    ecam.virginBody = body.html(); 
+  
+  var b2 = ecam.virginBody.replace(regexp.a, regexp.b);  
+  body.html(b2); 
+}
+
 
 ecam.updateMessageFields = function (response, button, formRoot)
 {  

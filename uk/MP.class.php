@@ -81,37 +81,42 @@ class MP extends EcampaignTarget
 
     $constituency = self::request($uri, "/constituency");
 
-    $memberEmail = (String) $constituency->{"member-email"} ;
+    $memberEmail = (String) $constituency->{"member-email"} ;  $source = "findyourMP ".$uri;
     $memberName = (String) $constituency->{"member-name"}  ;
+    $constituencyName = (String) $constituency->{"name"}  ;
 
     // Some MPs email addresses are not available (or have been removed)
     // from the database accessible through the API.
-    // In that event, get the member biography from the constituency page
-    // and scrape through it for a likely email address i.e. one that contains
-    // the MPs name. Note some MPs often have office staff handle all their mail.
+    // In any event, get the member biography from the constituency page
+    // and scrape through it for a likely email address
 
-    if (empty($memberEmail))
+
+    $biographyUrl = (String) $constituency->{"member-biography-url"};
+    if (empty($biographyUrl))
+      throw new Exception("Unable to find biography (and so email) for ".(String) $constituency->{"member-name"});
+
+    $biography = self::lookupMPBiography($memberName, $biographyUrl);
+
+    if (isset($biography['email']))
     {
-      $biographyUrl = (String) $constituency->{"member-biography-url"};
-      if (empty($biographyUrl))
-        throw new Exception("Unable to find biography (and so email) for ".(String) $constituency->{"member-name"});
-
-      $memberEmail = self::lookupEmailFromName($memberName, $biographyUrl);
+      $memberEmail = $biography['email'];     // take email over biography page
+      $source = $biography['source']." ".$biographyUrl;
     }
+
     if (empty($memberEmail))
       throw new Exception("Unable to find email address for ".(String) $constituency->{"member-name"});
-
 
     $target = array();
     $target['name']  =   $memberName ;
     $target['email'] = $this->testMode->isDiverted() ? $this->fieldSet->campaignEmail : $memberEmail;
 
-    $this->log->write("lookup", $this->fieldSet, (String) $constituency->name);
+    $this->log->write("lookup", $this->fieldSet, "$memberName\r\n$constituencyName\r\nsource:".$source);
     return array("target" => array($target),
-                 "constituency" => (String) $constituency->name,
+                 "constituency" => $constituencyName,
+                 "regexp" =>  array('a'=>"[name]", 'b'=>$biography['addressAs']),
                  "success" => true,
                  "callbackJS" => 'updateMessageFields',
-                 "msg" => (String) $constituency->name);
+                 "msg" => $constituencyName);
   }
 
 
@@ -151,16 +156,26 @@ class MP extends EcampaignTarget
 
 
   /**
-   * Trying to find an MPs email address. Search the MPs web page and
-   * look for an address that matches (ideally first and) last name.
-   * Something similar used on MSP lookup page.
+   * Trying to find an MPs 'address as' and email address on bibliography web page.
    *
-   * @param unknown_type $firstName
-   * @param unknown_type $lastName
-   * @param unknown_type $url
+   * To find email address:
+   *
+   * 1. look for any email addresss that's between 'westminster' and 'constituency'
+   * 2. look for first name and last name in email address
+   * 3. look for last name only.
+   *
+   * Note some MPs often have office staff handle all their mail.
+   *
+   * If this web page is redesigned, this will all break!
+   *
+   * @param unknown_type $name of MP
+   * @param unknown_type $url or bibliography page
    */
 
-  private static function lookupEmailFromName($name, $url)
+  const extractAddressAs = "<[^>]+>Address as<[^>]+>[^<]+<[^>]+>(.+?)<[^>]+>";
+  const extractWestminsterEmail = "Westminster.+\"mailto:([^\"]+)\".+?Constituency";
+
+  private static function lookupMPBiography($name, $url)
   {
     if (true)
     {
@@ -180,30 +195,61 @@ class MP extends EcampaignTarget
 
       $mpPage = curl_exec($ch);
     }
+    $biography = array();
+
+    $regexAddressAs = '$' . self::extractAddressAs . '$i' ;
+    $num = preg_match_all($regexAddressAs, $mpPage, $matches);
+    if ($num == 1)
+    {
+      $biography['addressAs'] =  $matches[1][0];
+    }
+
+    // step 2. try inside westminster block for any email address
+
+    $regexWestminsterEmail = '$' . self::extractWestminsterEmail . '$s' ;
+    $num = preg_match_all($regexWestminsterEmail, $mpPage, $matches);
+    if ($num == 1)
+    {
+      $biography['email'] =  $matches[1][0];
+      $biography['source'] =  'biography(1)';
+      return $biography ;
+    }
+
     if (empty($name))
       throw new Exception("Name is empty");
 
     $dottedName = str_replace(" ", ".", $name);
 
-    //try traditional firstname.lastname
+    // step 2. try traditional firstname.lastname
     $mpRegex = '$href="mailto:([^"]*?' . $dottedName . '[^"]*?)"$i';
     $num = preg_match_all($mpRegex, $mpPage, $matches);
     if ($num == 1)
-      return $matches[1][0];
+    {
+      $biography['email'] =  $matches[1][0];
+      $biography['source'] =  'biography(2)';
+      return ;
+    }
 
-    // then try lastname only
+    // step 3. then try lastname only
     $names = explode(" ", $name);
     $lastName = $names[count($names)-1];
 
     $mpRegex = '$href="mailto:([^"]*?' . $lastName . '[^"]*?)"$i';
     $num = preg_match_all($mpRegex, $mpPage, $matches);
     if ($num == 1)
-      return $matches[1][0];
+    {
+      $biography['email'] =  $matches[1][0];
+      $biography['source'] =  'biography(3)';
+    }
+/*
+    else
+      if ($num > 1)
+        throw new Exception("Unable to find $name and multiple email addresses match $lastName on page $url");
 
-    if ($num > 1)
-      throw new Exception("Unable to find $name and multiple email addresses match $lastName on page $url");
-
-    return "" ;
+    if (empty($biography['email']))
+        throw new Exception("Unable to find $name on page $url");
+*/
+    return $biography ;
   }
 }
 

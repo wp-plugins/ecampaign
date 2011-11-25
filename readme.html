@@ -360,7 +360,14 @@ These files can be removed if you are not using this functionality.
 <tr>
 <td>uk/MP</td>
 <td>to look up MP for a particular UK postcode<br/>
-Makes use of http://findyourmp.parliament.uk/api</td> 
+Uses http://findyourmp.parliament.uk/api to find the constituency name, MP name, MP email address and a link 
+to the MP's biography web page. That web page is scraped to find the 'address as' field e.g. Dr John Smith 
+and the preferred email address for Westminster (as opposed to constituency) business.
+<br/>
+When the site visitor clicks lookup, if the email body contains with Dear [name], [name] will be replaced with 
+the 'address as' field. If the biography cannot be read, then the site visitor must do this him/herself 
+before the message can be sent.
+</td> 
 </tr><tr>
 <td>uk/MSP</td>
 <td>to look up MSP for a particular Scottish postcode<br/>
@@ -387,7 +394,7 @@ next to the {ukpostcode} field.  Here is an example template to lookup up an M.P
 <br/>{to* lookup@my.MP}
 <br/>{subject* Please sign Early Date Motion 1234} 
 <br/>{body
-<br/>Dear MP
+<br/>Dear [name]
 <br/>
 <br/>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
 <br/>
