@@ -238,8 +238,21 @@ ecam.updateMessageBody = function (regexp, button, formRoot)
   if (ecam.virginBody == undefined)
     ecam.virginBody = body.html(); 
   
-  var b2 = ecam.virginBody.replace(regexp.a, regexp.b);  
-  body.html(b2); 
+  var updatedMessageBody = ecam.virginBody.replace(regexp.a, regexp.b); 
+  //you cannot update textarea in IE7 or 8 using innerText and preserve all the line breaks. 
+  // so clone html of teaxtarea and insert new textarea into page and remove old text area. 
+  if (jQuery.browser.msie) 
+  {
+	var parent = body.parent();
+	var openingTagPattern = new RegExp("<textarea[^>]*>","i");
+	var openingTagMatch = openingTagPattern.exec(parent.html());  // get opening tag and attributes
+	var textArea = openingTagMatch[0] + updatedMessageBody + '</textarea>' ;
+	
+	body.before(textArea); 
+	body.remove();
+  }
+  else 
+	body.html(updatedMessageBody); 
 }
 
 
@@ -446,7 +459,7 @@ jQuery(document).ready(function() {
         sameInputs = sameInputs.filter("[name='" + name + "']");
         var dataKeyed = input.val();
         sameInputs.attr('value', dataKeyed);
-        ecam.flipLabel(sameInputs);
+//        ecam.flipLabel(sameInputs);
 //        sameInputs.after('<div>therather</div>');        
         return true ;
       }
