@@ -33,7 +33,7 @@ class MP extends EcampaignTarget
   function initializeCannedFields()
   {
     parent::initializeCannedFields();
-    $this->cannedFields[self::sLookup] = array(__(self::sLookup),   0,  0);
+    $this->cannedFields[self::sLookup] = array(__('lookup MP'));
   }
 
 
@@ -113,7 +113,7 @@ class MP extends EcampaignTarget
     $this->log->write("lookup", $this->fieldSet, "$memberName\r\n$constituencyName\r\nsource:".$source);
     return array("target" => array($target),
                  "constituency" => $constituencyName,
-                 "regexp" =>  array('a'=>"[name]", 'b'=>$biography['addressAs']),
+                 "regexp" =>  array('pattern'=>"[name]", 'replacement'=>$biography['addressAs']),
                  "success" => true,
                  "callbackJS" => 'updateMessageFields',
                  "msg" => $constituencyName);

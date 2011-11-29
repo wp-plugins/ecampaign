@@ -230,29 +230,63 @@ ecam.updateStatus = function(status, success, msg)
  * Update email message fields with new data if supplied
  */
 
-
-
 ecam.updateMessageBody = function (regexp, button, formRoot)
 {  
   var body = formRoot.find("textarea[name='body']").first();
-  if (ecam.virginBody == undefined)
-    ecam.virginBody = body.html(); 
+  var currentText = body.val() ;  // may NOT be actually what has been keyed in 
+
+  var updatedText = currentText.replace(regexp.pattern, regexp.replacement);
   
-  var updatedMessageBody = ecam.virginBody.replace(regexp.a, regexp.b); 
+  if (updatedText != currentText)   // successful update
+  {
+    ecam.lastOriginalText = currentText;
+    ecam.lastUpdatedText = updatedText;
+  }    
+  else    
+  {
+    // unable to replace the text in the current page, has the text 
+    // been modified by the user, if not, we can use any original 
+    // copy of the text that we saved from the last substitution.
+    // This situation occurs when the site visitor changes the 
+    // postcode multiple times. Easiier to accomodate this than block repeat lookups.
+    
+    if (ecam.lastUpdatedText != undefined  && currentText == ecam.lastUpdatedText)
+    {
+      updatedText = ecam.lastOriginalText.replace(regexp.pattern, regexp.replacement);
+      if (updatedText != ecam.lastOriginalText)
+      {
+        ecam.lastUpdatedText = updatedText; 
+      }
+      else 
+      {
+        alert("Unable to substitute " + regexp.pattern +  " with " + regexp.replacement);
+        return ;         
+      }
+    }
+    else
+    {
+      alert("Message text may have been edited; " +
+          " unable to substitute " + regexp.pattern + " with " + regexp.replacement + 
+          ". Please check the message text before sending.");
+      return ; 
+    }
+  }
+  var updatedMessageBody = updatedText ;
+    
   //you cannot update textarea in IE7 or 8 using innerText and preserve all the line breaks. 
   // so clone html of teaxtarea and insert new textarea into page and remove old text area. 
   if (jQuery.browser.msie) 
   {
-	var parent = body.parent();
-	var openingTagPattern = new RegExp("<textarea[^>]*>","i");
-	var openingTagMatch = openingTagPattern.exec(parent.html());  // get opening tag and attributes
-	var textArea = openingTagMatch[0] + updatedMessageBody + '</textarea>' ;
-	
-	body.before(textArea); 
-	body.remove();
+    var parent = body.parent();
+    var openingTagPattern = new RegExp("<textarea[^>]*>","i");
+    var openingTagMatch = openingTagPattern.exec(parent.html());  // get opening tag and attributes
+    var textArea = openingTagMatch[0] + updatedMessageBody + '</textarea>' ;
+  	
+    body.before(textArea); 
+    body.remove();
   }
   else 
-	body.html(updatedMessageBody); 
+    body.val(updatedMessageBody); 
 }
 
 
