@@ -14,7 +14,7 @@ into any wordpress page or post. Petition signatures and email activity is logge
 and and viewable under the under the admin pages.
 <h3>Sequence of events for email action</h3>
 
-<h4>Step 1 : email to target</h4>
+<h4>Step 1 : email target</h4>
 <ul>
 	<li>This plugin presents a pre-prepared email to the site visitor.</li>
 	<li>The site visitor edits the prepared email and then clicks send.</li>
@@ -22,9 +22,9 @@ and and viewable under the under the admin pages.
 	with 'targetSubject' to 'targetEmail' address(es) and sends a copy to visitor's 
 	own mailbox. Then this plugin sends 
 	an email from the website visitor's email address to the campaign mailbox and 
-	the 'email to friends' form (if declared) is revealed.</li>
+	the 'share by email' form (if declared) is revealed.</li>
 </ul>
-<h4>Step 2 : email to friends (optional)</h4>
+<h4>Step 2 : share by email (optional)</h4>
 <ul>
   <li>The website visitor adds friends email addresses.</li>
 	<li>The website visitor edits the prepared email and clicks send.</li>
@@ -48,18 +48,17 @@ with an unlimited source of fossil free energy for many years.
 <br/>
 [/ecampaign]
 </code>
-<p>The second form does not appear until the first email is sent.</p>
 <p>
-You can configure testMode or override the campaignEmail address on this particular action, 
-see 'Configuring the ecampaign plugin attributes' below.
+Copies of the outgoing emails are sent to the campaign email address. 
+You can override the campaign email address on one particular action, see 'Configuring the ecampaign plugin attributes' below.
 </p>
 
 
-<h3>Setting up an Email Action with a Share with Friend form</h3>
+<h3>Setting up an Email Action with a Share by email form</h3>
 <p>
 This dual form mode is the only mode supported by earlier versions (&lt; 0.80) of the plugin. 
 
-If you want to site visitors to share with friends (by email) as well, add a &lt;hr&gt; tag (horizontal rule) 
+If you want to site visitors to share by email as well, add a &lt;hr&gt; tag (horizontal rule) 
 and add the text of email to friends. Not that the subject lines of the two emails must be set 
 using targetSubject and friendSubject. 
 </p>
@@ -85,6 +84,7 @@ for a wind farm on Windy Hill.  I hope you will as well.
 <br/>
 [/ecampaign]
 </code>
+<p>The second form does not appear until the first email is sent.</p>
 
 <h3>Customising the site wide templates</h3>
 <p>
