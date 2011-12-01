@@ -201,10 +201,15 @@ class EcampaignPetition extends Ecampaign
     {
       self::validateEmail($recipient, "recipientEmail");
       $mailer->AddAddress($recipient);
+      if (empty($fieldSet->target))
+        $fieldSet->target = $recipient;
     }
-//    if ($this->options->bccCampaignEmail)
-//      $mailer->AddBCC($fieldSet->campaignEmail);    // this isn't really necessary
-
+    if ($this->log->recordExists(EcampaignLog::tSend, $fieldSet->visitorEmail, $fieldSet->target, $fieldSet->postID))
+    {
+      $response = array("success" => false,
+                        "msg" => __("You have already sent an email about this issue to $fieldSet->target")) ;
+      return $response ;
+    }
     $text = new EcampaignString();
     $text->add($fieldSet->body)  // this has been trimmed
          ->add(" ")

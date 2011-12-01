@@ -9,7 +9,7 @@
 class EcampaignLog
 {
   static $tableName ;
-  static $dbVersion = "0.2" ;
+  static $dbVersion = "0.3" ;
 
   const tSend = 'send' ;
   const tSign = 'sign' ;
@@ -37,10 +37,11 @@ class EcampaignLog
           address VARCHAR(100) NOT NULL,
           checkbox1 bool NOT NULL,
           checkbox2 bool NOT NULL,
+          target VARCHAR(50) NOT NULL,
           info VARCHAR(1024) NOT NULL,
           postID BIGINT(20) NOT NULL,
           PRIMARY KEY  (id)
-        );";
+        );" ;
 
       require_once(ABSPATH . 'wp-admin/upgrade-functions.php');
       dbDelta($sql);
@@ -55,6 +56,23 @@ class EcampaignLog
     $drop = $wpdb->get_var("drop table " . self::$tableName );
   }
 
+  /**
+   * check that
+   * @param $state
+   * @param $postID
+   * @param $target
+   */
+
+  function recordExists($state, $visitorEmail, $target,  $postID)
+  {
+    global $wpdb ;
+    $numRows = $wpdb->get_var("SELECT count(*) FROM ". self::$tableName ." WHERE true and " .
+      "state        = '". $state .          "' and ".
+      "visitorEmail = '". $visitorEmail .   "' and ".
+      "postID       =  ". $postID .         " and " .
+      "target       = '". $target .         "' ;" );
+    return $numRows > 0  ;
+  }
 
   /**
    * write log record to database
@@ -74,6 +92,7 @@ class EcampaignLog
             'address' => isset($field->postalAddress) ? $field->postalAddress->toString() : "",
             'checkbox1' => $field->checkbox1 ? 1 : 0, //very nasty
             'checkbox2' => $field->checkbox2 ? 1 : 0,
+            'target' =>  self::ensureSet($field->target),
             'info' =>  isset($infoString) ? $infoString : $field->subject,
             'postID' => (int) self::ensureSet($field->postID)  ));
   }
