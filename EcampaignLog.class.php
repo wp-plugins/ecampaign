@@ -9,7 +9,7 @@
 class EcampaignLog
 {
   static $tableName ;
-  static $dbVersion = "0.3" ;
+  static $dbVersion = "0.4" ;
 
   const tSend = 'send' ;
   const tSign = 'sign' ;
@@ -40,7 +40,8 @@ class EcampaignLog
           target VARCHAR(50) NOT NULL,
           info VARCHAR(1024) NOT NULL,
           postID BIGINT(20) NOT NULL,
-          PRIMARY KEY  (id)
+          PRIMARY KEY  (id),
+	  INDEX postID_visitorEmail (postID, visitorEmail),
         );" ;
 
       require_once(ABSPATH . 'wp-admin/upgrade-functions.php');
