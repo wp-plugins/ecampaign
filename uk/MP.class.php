@@ -111,12 +111,16 @@ class MP extends EcampaignTarget
     $target['email'] = $this->testMode->isDiverted() ? $this->fieldSet->campaignEmail : $memberEmail;
 
     $this->log->write("lookup", $this->fieldSet, "$memberName\r\n$constituencyName\r\nsource:".$source);
-    return array("target" => array($target),
+    $response = array("target" => array($target),
                  "constituency" => $constituencyName,
-                 "regexp" =>  array('pattern'=>"[name]", 'replacement'=>$biography['addressAs']),
                  "success" => true,
                  "callbackJS" => 'updateMessageFields',
-                 "msg" => $constituencyName);
+                 "msg" => $memberName);
+
+    if (isset($biography['addressAs']))
+      $response['regexp'] = array('pattern'=>"[name]", 'replacement'=>$biography['addressAs']);
+
+    return $response;
   }
 
 
