@@ -255,8 +255,8 @@ class Ecampaign
         // this is legacy mode and it's messy
 
         $this->classPath = 'EcampaignTarget'; // bodge
-        $pageAttributes->to = $pageAttributes->targetEmail ;
-        $pageAttributes->subject = $pageAttributes->targetSubject ;
+        if (empty($pageAttributes->to))      $pageAttributes->to = $pageAttributes->targetEmail ;
+        if (empty($pageAttributes->subject)) $pageAttributes->subject = $pageAttributes->targetSubject ;
         $pageAttributes->body = $pageParts[0] ;
         // Convert the clean \r\n characters into html breaks so its in the same
         // format as if the form were embedded in the post.
@@ -288,6 +288,7 @@ class Ecampaign
           $template = preg_replace("$[\r\n]+$", "<br/>", $this->defaultTemplate);
           $pageAttributes->body = $pageParts[0];
         }
+        if (empty($pageAttributes->to))  $pageAttributes->to = $pageAttributes->targetEmail ;
         $form = self::createForm($template, $this->styleClass, $pageAttributes, $hiddenFields);
         $sections[] = $form;
         break ;
