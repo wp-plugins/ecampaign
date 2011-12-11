@@ -36,6 +36,7 @@ $ecampaign = null ;
 function ecampaign_short_code($attributes, $body)
 {
   $pageAttributes = (object) shortcode_atts_case_sensitive(array(
+    'to'             => '',
     'targetEmail'    => '',
     'subject'        => '',
     'targetSubject'  => '',
