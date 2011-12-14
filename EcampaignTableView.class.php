@@ -124,9 +124,9 @@ class EcampaignTableView
   {
     $offset = !empty($_GET['offset']) ? $_GET['offset'] : '0' ;
     $limit = !empty($_GET['pageSize']) ? $_GET['pageSize'] : '20' ;
-    $lastPage = $totalRows/$limit + 1 ; // numbering from 1
+    $lastPage = intval($totalRows/$limit) + 1 ; // numbering from 1
     if ($offset > $totalRows)             // happens after filtering
-      $offset = min($totalRows-1, 0);
+      $offset = $totalRows-$limit ;       // show last page
     $currentPage = $offset/$limit + 1 ;
 
     $pageNumbers = new EcampaignString();
@@ -136,12 +136,15 @@ class EcampaignTableView
       $o = ($p-1) * $limit ;
       if ($p != $currentPage)
       {
-        $q = $this->createQuery(array("totalRows" => $totalRows, "offset"=>$o));
+        // if last page, force row count on next query in case table has grown
+        $tRows = ($p != $lastPage) ? $totalRows : null ;
+        $q = $this->createQuery(array("offset" => $o, 'totalRows' => $tRows));
         $pageNumbers->add("<a href='?$q'>$p</a>&nbsp;");
       }
       else
         $pageNumbers->add("<span>$p</span>");
     }
+
     $pageInput = new EcampaignString();
     $pageInput->add("<label for='offset'>Offset</label>")
               ->add("<input id='offset' type='text' name='offset' size=4  value=$offset />")
@@ -314,7 +317,9 @@ class EcampaignTableView
   }
 
   /**
-   * manipulate the query string (there must be a better way of doing this)
+   * update the query string with the new key pairs supplied in $params
+   * (there must be a better way of doing this)
+   * key pairs will be removed from existing string if params value is set to null.
    */
   static function createQuery($params)
   {
@@ -326,9 +331,10 @@ class EcampaignTableView
     foreach($params as $key => $value)
     {
       $count = 0 ;
-      $q = preg_replace("/$key=\w*/", "$key=$value", $q, -1, $count);
-      if ($count == 0)
-       $q .= "&$key=$value" ;
+      $keyPair = empty($value) ? "" : "&$key=$value" ;
+      $q = preg_replace("/&$key=\w*/", $keyPair, $q, -1, $count);
+      if ($count == 0 && !empty($keyPair))
+       $q .= "$keyPair" ;
     }
     return $q ;
   }
