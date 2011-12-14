@@ -11,7 +11,7 @@
 class EcampaignTableView
 {
   private $tableName ;
-  function view($title, $tableName, $views, $filterByFields)
+  function view($title, $tableName, $views, $fieldPresentations, $filterByFields)
   {
     $this->tableName = $tableName ;
 
@@ -28,7 +28,7 @@ class EcampaignTableView
 
     $whereClause = "" ; foreach($filterByFields as $field)
     {
-      $whereClause .= $this->addFilterControl($filterControls, $columnSet, $field);
+      $whereClause .= $this->addFilterControl($filterControls, $columnSet, $field, $fieldPresentations[$field]);
     }
     $totalRows = $this->getTotalRows($whereClause);
 
@@ -66,7 +66,7 @@ class EcampaignTableView
          ->wrap("div", "id='eclog'");
 
     if (!isset($_REQUEST['format']))
-      $form->add($this->addTableContent($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
+      $form->add($this->addTableContent($visibleColumnSet, $fieldPresentations, $whereClause, $orderBy = "date", $offset, $limit));
     else
       $form->add($this->writeFile($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
 
@@ -95,23 +95,25 @@ class EcampaignTableView
   }
 
 
-  function addFilterControl($sb, $columnSet, $columnName, $viewAllText = "*")
+  function addFilterControl($sb, $columnSet, $columnName, $presentation)
   {
     global $wpdb ;
-    $all = htmlspecialchars("View all ". $columnSet[$columnName] . "s");
+    $wildSelection = htmlspecialchars("View all ". $columnSet[$columnName] . "s");
 
     $dbrows = $wpdb->get_results("SELECT $columnName, count(*) FROM $this->tableName GROUP BY ". $columnName, ARRAY_A);
 
-    array_unshift($dbrows, array($columnName=>$all));
+    array_unshift($dbrows, array($columnName=>''));
 
-    $selected = isset($_GET[$columnName]) ? $_GET[$columnName] : $all ;
+    $selected = isset($_GET[$columnName]) ? $_GET[$columnName] : '' ;
 
     $s = new EcampaignString();
     foreach ($dbrows as $dbrow)
     {
       $val = $dbrow[$columnName];
+      $label = isset($presentation) ? $presentation->asString($val): $val ;
+      $label = $label == '' ? $wildSelection : $label ;
       $att = ($selected == $val) ? " selected='selected' " : "" ;
-      $s->add("<option $att>$val</option>");
+      $s->add("<option value='$val' $att>$label</option>");
     }
     $s->wrap("select", "name='$columnName'");
     $s->addTo($sb);
@@ -126,7 +128,7 @@ class EcampaignTableView
     $limit = !empty($_GET['pageSize']) ? $_GET['pageSize'] : '20' ;
     $lastPage = intval($totalRows/$limit) + 1 ; // numbering from 1
     if ($offset > $totalRows)             // happens after filtering
-      $offset = $totalRows-$limit ;       // show last page
+      $offset = max(0, $totalRows-$limit); // show last page
     $currentPage = $offset/$limit + 1 ;
 
     $pageNumbers = new EcampaignString();
@@ -205,7 +207,7 @@ class EcampaignTableView
   }
 
 
-  function addTableContent($columnSet, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
+  function addTableContent($columnSet, $presentations, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
   {
     global $wpdb ;
 
@@ -226,24 +228,8 @@ class EcampaignTableView
     {
       foreach($dcols as $dkey=>$dval)
       {
-        switch ($dkey) {
-          case 'postID':       // link the post ID to the original page
-            if ($dval > 0)          // but it looks inefficient
-            {
-              $post = get_post($dval);  // support for pages? er no
-              $postName = !empty($post) ? $post->post_name : $dval ;
-              $postURL = site_url("?p=$dval");
-              $dcols[$dkey] = "<a title='Go to post/page $dval' href='$postURL'>$postName</a>";
-            }
-            break ;
-          case 'info':
-            $dval = preg_replace('@(https?://([-\w\.]+[-\w])+(:\d+)?(/([\w/_\.#-]*(\?\S+)?[^\.\s])?)?)@', '<a href="$1" target="_blank">$1</a>', $dval);
-            $info = explode("\r\n", $dval); // info expected to be a block
-            $dcols[$dkey] = $info[0] ;    // display the first lines
-            if (count($info) > 1)         // display all lines whene user clicks/hovers or whatever
-              $dcols[$dkey] .= "<span class='infoMore'>&nbsp;more</span><div class='infoBlock'>".implode("<br/>", $info)."</div>" ;
-            break;
-        }
+        if (isset($presentations[$dkey]))
+          $dcols[$dkey] = $presentations[$dkey]->inTable($dval);
       }
       $tcols->set($dcols)->wrapAll("td")->wrap("tr")->addTo($trows);
     }

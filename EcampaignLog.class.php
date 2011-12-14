@@ -150,13 +150,77 @@ class EcampaignLog
       )
 
     );
+    $fieldPresentations = array(
+      'postID' => new _EcampaignPresentPostID(),
+      'checkbox1' => new _EcampaignPresentCheckBox(),
+      'checkbox2' => new _EcampaignPresentCheckBox(),
+      'info' => new _EcampaignPresentInfo()
+    );
+
+
     $filterByFields = array('state', 'checkbox1', 'checkbox2', 'postID');
 
     include_once dirname(__FILE__) . '/EcampaignTableView.class.php';
     $tableView = new EcampaignTableView();
 
-    return $tableView->view("Ecampaign log", self::$tableName, $views, $filterByFields);
+    return $tableView->view("Ecampaign log", self::$tableName, $views, $fieldPresentations, $filterByFields);
   }
 }
 
+/**
+ * helper classes for presenting field data
+ *
+ * @author johna
+ */
+
+class _EcampaignPresentPostID
+{
+  static function asString($postID)
+  {
+    $post = get_post($postID);  // support for pages? er no
+    $postName = !empty($post) ? $post->post_name : $postID ;
+    return $postName ;
+  }
+  static function inTable($postID)
+  {
+    $post = get_post($postID);  // support for pages? er no
+    $postName = !empty($post) ? $post->post_name : $postID ;
+    $postURL = site_url("?p=$postID");
+    return "<a title='Go to $postName' href='$postURL'>$postName</a>";
+  }
+}
+
+
+class _EcampaignPresentCheckBox
+{
+  static function asString($checked)
+  {
+    if ($checked == null) return '';
+    if (empty($checked)) return 'off';
+    return "on" ;
+  }
+  static function inTable($checked)
+  {
+    if ($checked == null) return '';
+    if (empty($checked)) return '';  // so that ons stand out in table
+    return "on" ;
+  }
+}
+
+class _EcampaignPresentInfo
+{
+  static function asString($info)
+  {
+    return 'not available';
+  }
+  static function inTable($info)
+  {
+    $s1 = preg_replace('@(https?://([-\w\.]+[-\w])+(:\d+)?(/([\w/_\.#-]*(\?\S+)?[^\.\s])?)?)@', '<a href="$1" target="_blank">$1</a>', $info);
+    $info = explode("\r\n", $s1); // info expected to be a block
+    $s = $info[0] ;    // display the first lines
+    if (count($info) > 1)         // display all lines whene user clicks/hovers or whatever
+      $s .= "<span class='infoMore'>&nbsp;more</span><div class='infoBlock'>".implode("<br/>", $info)."</div>" ;
+    return $s ;
+  }
+}
 
