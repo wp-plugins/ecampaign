@@ -154,11 +154,16 @@ class EcampaignLog
       'postID' => new _EcampaignPresentPostID(),
       'checkbox1' => new _EcampaignPresentCheckBox(),
       'checkbox2' => new _EcampaignPresentCheckBox(),
+      'visitorEmail' => new _EcampaignPresentVisitorEmail(),
       'info' => new _EcampaignPresentInfo()
     );
 
 
-    $filterByFields = array('state', 'checkbox1', 'checkbox2', 'postID');
+    $filterByFields = array('state'=>'select',
+                      'checkbox1'=>'select',
+                      'checkbox2'=>'select',
+                      'postID'=>'select',
+                      'visitorEmail'=>'hidden');
 
     include_once dirname(__FILE__) . '/EcampaignTableView.class.php';
     $tableView = new EcampaignTableView();
@@ -224,3 +229,16 @@ class _EcampaignPresentInfo
   }
 }
 
+class _EcampaignPresentVisitorEmail
+{
+  static function asString($s)
+  {
+    return $s ;
+  }
+  static function inTable($visitor)
+  {
+    $query = EcampaignTableView::createQuery(array("visitorEmail"=>$visitor));
+    $uri = $_SERVER['SCRIPT_URL'] . "?$query" ;
+    return "<a title='show all records that match $visitor' href='$uri'>$visitor</a>";
+  }
+}

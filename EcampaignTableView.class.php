@@ -26,10 +26,21 @@ class EcampaignTableView
 
     $filterControls = new EcampaignString();
 
-    $whereClause = "" ; foreach($filterByFields as $field)
+    $whereClause = $this->addSearchBox($filterControls, $columnSet);
+    foreach($filterByFields as $field => $controlType)
     {
-      $whereClause .= $this->addFilterControl($filterControls, $columnSet, $field, $fieldPresentations[$field]);
+      switch ($controlType)
+      {
+        case 'select' :
+          $whereClause .= $this->addSelectFilterControl($filterControls, $columnSet, $field, $fieldPresentations[$field]);
+          break ;
+
+        case 'hidden' :
+          $whereClause .= $this->addHiddenFilter($field);
+          break ;
+      }
     }
+
     $totalRows = $this->getTotalRows($whereClause);
 
     // note when 'numRows' button pressed, 'numRows' value intentionally overwrtten
@@ -95,7 +106,14 @@ class EcampaignTableView
   }
 
 
-  function addFilterControl($sb, $columnSet, $columnName, $presentation)
+  function addHiddenFilter($columnName)
+  {
+    $filterValue = urldecode($_GET[$columnName]);
+    return (empty($filterValue)) ?  "" : " and $columnName = '$filterValue' " ;
+  }
+
+
+  function addSelectFilterControl($sb, $columnSet, $columnName, $presentation)
   {
     global $wpdb ;
     $wildSelection = htmlspecialchars("View all ". $columnSet[$columnName] . "s");
@@ -121,6 +139,17 @@ class EcampaignTableView
     return $selected == $all ? "" : " and $columnName = '$selected' " ;
   }
 
+  function addSearchBox($sb, $columnSet)
+  {
+    $search =  urldecode($_GET['search']);
+    $sb->add("<label class=search for=s1>search</label><input id=s1 class=search name=search type='text' value='$search' />");    // render search box
+    if (empty($search)) return ;
+    foreach ($columnSet as $column => $name)
+    {
+      $where .= " or $column LIKE '%".mysql_real_escape_string($search)."%' ";
+    }
+    return " and (false $where)" ;
+  }
 
   function addPageControl($scroll, &$offset, &$limit, $totalRows)
   {
@@ -317,8 +346,8 @@ class EcampaignTableView
     foreach($params as $key => $value)
     {
       $count = 0 ;
-      $keyPair = empty($value) ? "" : "&$key=$value" ;
-      $q = preg_replace("/&$key=\w*/", $keyPair, $q, -1, $count);
+      $keyPair = empty($value) ? "" : "&$key=". urlencode($value) ;
+      $q = preg_replace("/&$key=[^&]*/", $keyPair, $q, -1, $count);
       if ($count == 0 && !empty($keyPair))
        $q .= "$keyPair" ;
     }
