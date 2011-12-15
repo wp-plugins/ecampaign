@@ -237,7 +237,7 @@ class _EcampaignPresentVisitorEmail
   }
   static function inTable($visitor)
   {
-    $query = EcampaignTableView::createQuery(array("visitorEmail"=>$visitor));
+    $query = EcampaignTableView::createQuery(array("visitorEmail"=>$visitor,"offset"=>null));
     $uri = $_SERVER['SCRIPT_URL'] . "?$query" ;
     return "<a title='show all records that match $visitor' href='$uri'>$visitor</a>";
   }
