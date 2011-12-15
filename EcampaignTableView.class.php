@@ -26,7 +26,7 @@ class EcampaignTableView
 
     $filterControls = new EcampaignString();
 
-    $whereClause = $this->addSearchBox($filterControls, $columnSet);
+    $whereClause = "" ;
     foreach($filterByFields as $field => $controlType)
     {
       switch ($controlType)
@@ -40,6 +40,7 @@ class EcampaignTableView
           break ;
       }
     }
+    $whereClause .= $this->addSearchBox($filterControls, $columnSet);
 
     $totalRows = $this->getTotalRows($whereClause);
 
@@ -59,19 +60,24 @@ class EcampaignTableView
     $deleteControl = new EcampaignString();
     $this->addDeleteControl($deleteControl, $totalRows, $whereClause, $offset, $limit);
 
-    $form = new EcampaignString();
-    $form->add($filterControls)
-           ->add($viewControl)
-           ->add("<input type='submit' class='button-secondary' name='totalRows' value='Filter'/>")
-           ->add("<input type='hidden' name='page' value='ecampaign-log'/>") // hard code url, yuk!
+    $block1 = new EcampaignString('Filters');
+    $block1->add($filterControls)
            ->wrap("div");
 
-    $block2 = new EcampaignString();
-    $block2->add($pageControl)
+    $block2 = new EcampaignString("<label class=ecview>".__("Views")."</label>");
+    $block2->add($viewControl)
            ->add($formatControl)
+           ->add("<input type='submit' class='button-secondary' name='totalRows' value='Filter'/>")
+           ->add("<input type='hidden' name='page' value='ecampaign-log'/>") // hard code url, yuk!
+           ->add("&nbsp;<a title='Reset all filters and go to first page' href='?page=ecampaign-log'>Reset</a>")
            ->wrap('div');
 
-    $form->add($block2)
+    $block3 = new EcampaignString('Pages');
+    $block3->add($pageControl)
+           ->wrap('div');
+
+    $form = $block1 ;
+    $form->add($block2)->add($block3)
          ->wrap("form")
          ->add($deleteControl)
          ->wrap("div", "id='eclog'");
@@ -96,10 +102,12 @@ class EcampaignTableView
   {
     $s = new EcampaignString();
     $selected = isset($_GET["view"]) ? $_GET["view"] : __('Normal');
+    $sep = "" ;
     foreach ($views as $legend => $columnSet)
     {
       $checked = ($legend == $selected) ? "checked='checked'" : '';
-      $s->add("<input type='radio' name='view' value='$legend' $checked>$legend</a>");
+      $s->add("$sep<input type='radio' name='view' value='$legend' $checked>$legend</a>");
+      $sep = " | " ;
     }
     $s->addTo($sb);
     return $views[$selected];
@@ -142,7 +150,7 @@ class EcampaignTableView
   function addSearchBox($sb, $columnSet)
   {
     $search =  urldecode($_GET['search']);
-    $sb->add("<label class=search for=s1>search</label><input id=s1 class=search name=search type='text' value='$search' />");    // render search box
+    $sb->add("<label class=ecsearch for=s1>Search</label><input id=s1 class=ecsearch name=search type='text' value='$search' />");    // render search box
     if (empty($search)) return ;
     foreach ($columnSet as $column => $name)
     {
