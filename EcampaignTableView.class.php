@@ -163,16 +163,30 @@ class EcampaignTableView
   {
     $offset = !empty($_GET['offset']) ? $_GET['offset'] : '0' ;
     $limit = !empty($_GET['pageSize']) ? $_GET['pageSize'] : '20' ;
-    $lastPage = intval($totalRows/$limit) + 1 ; // numbering from 1
-    if ($offset > $totalRows)             // happens after filtering
+    $lastPage = intval(($totalRows-1)/$limit) + 1 ; // numbering from 1
+    if ($offset > $totalRows)              // happens after filtering
       $offset = max(0, $totalRows-$limit); // show last page
-    $currentPage = $offset/$limit + 1 ;
+    $currentPage = intval($offset/$limit) + 1 ;
 
     $pageNumbers = new EcampaignString();
 
-    for ($p = 1 ; $p <= $lastPage ; $p++)
+    for ($p = 1 ; $p <= $lastPage ; )
     {
       $o = ($p-1) * $limit ;
+
+      if ($p > 1+1 && $p < $currentPage-3)  // skip link for early pages
+      {
+        $pageNumbers->add("<span>...</span>");
+        $p = $currentPage-3 ;
+        continue ;
+      }
+      if ($p > $currentPage+3 && $p < $lastPage-1)
+      {
+        $pageNumbers->add("<span>...</span>");  // skip link for later pages
+        $p = $lastPage-1 ;
+        continue ;
+      }
+
       if ($p != $currentPage)
       {
         // if last page, force row count on next query in case table has grown
@@ -182,6 +196,8 @@ class EcampaignTableView
       }
       else
         $pageNumbers->add("<span>$p</span>");
+
+      $p++;
     }
 
     $pageInput = new EcampaignString();
