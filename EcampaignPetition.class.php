@@ -90,7 +90,7 @@ class EcampaignPetition extends Ecampaign
     $fieldSet->postalAddress = $address->removeEmptyFields();
 
     $this->infoMap = array(
-       "referer: " . $fieldSet->referer,
+       "referrer: " . $fieldSet->referer,
        "remote: " . "{$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
        "user-agent: " . $_SERVER['HTTP_USER_AGENT']);
 
@@ -172,7 +172,30 @@ class EcampaignPetition extends Ecampaign
 
     $fieldSet = $this->fieldSet;
 
-    $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);
+    $mailer = self::getPhpMailer();
+    $mailer->Subject = $fieldSet->subject ? $fieldSet->subject : "Petition signed" ;  //toto use blog post name
+    $mailer->From = $fieldSet->campaignEmail ;
+    $mailer->FromName = get_bloginfo("name");
+    $mailer->AddAddress($fieldSet->visitorEmail, $fieldSet->visitorName);
+
+    if ($this->log->recordExists(EcampaignLog::tSign, $fieldSet->visitorEmail, '', $fieldSet->postID))
+    {
+      $response = array("success" => false,
+                        "msg" => __("You have already signed this petition")) ;
+      return $response ;
+    }
+    $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);    // name added to petition !
+
+    $mailer->Body = $fieldSet->subject . "\r\n\r\n".
+      sprintf(__("Thank you for signing this petition."));
+
+    $success = $mailer->Send();
+
+    if (!$success)
+    {
+      throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
+    }
+
     $this->subscribe($fieldSet);
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $this->successMessage));
 
@@ -267,8 +290,7 @@ class EcampaignPetition extends Ecampaign
 
       $list = _createFromClassPath($listClassPath);
 
-      $list->subscribe($fieldSet->visitorEmail,
-                       $fieldSet->checkbox1, $fieldSet->checkbox1);
+      $list->subscribe($this->templateFields, $fieldSet);
 
       $this->log->write("subscribe", $fieldSet, $this->infoMap);
     }

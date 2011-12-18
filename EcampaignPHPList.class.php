@@ -38,7 +38,7 @@ class EcampaignPHPList
     $this->table_prefix = $table_prefix ;
     $this->usertable_prefix = $usertable_prefix ;
 
-    if (!isset($this->args['checkbox1']) && !isset($this->args['checkbox1']))
+    if (!isset($this->args['checkbox1']) && !isset($this->args['checkbox2']))
       return (__("Configuration error: checkbox1=xx or checkbox2=yy expected where xx and yy are PHPList ids"));
 
     if ($connectDB && empty(self::$db))
@@ -51,20 +51,24 @@ class EcampaignPHPList
     }
     return "" ;
   }
-
-  function subscribe($visitorEmail, $checkbox1, $checkbox2)
+  /**
+   *
+   * @param unknown_type $templateFields  full set of fields and attributes
+   * @param unknown_type $fieldSet        easy to access set of fields.
+   */
+  function subscribe($templateFields, $fieldSet)
   {
     $msg = self::checkConfiguration(true);
     if (!empty($msg))
       throw new Exception($msg);
 
     $listID1 = $this->args['checkbox1'];
-    if (isset($listID1) && $checkbox1)
-      self::addEmailToList($visitorEmail, $listID1);
+    if (isset($listID1) && $fieldSet->checkbox1)
+      self::addEmailToList($fieldSet->visitorEmail, $listID1);
 
     $listID2 = $this->args['checkbox2'];
-    if (isset($listID2) && $checkbox2)
-      self::addEmailToList($visitorEmail, $listID2);
+    if (isset($listID2) && $fieldSet->checkbox2)
+      self::addEmailToList($fieldSet->visitorEmail, $listID2);
 
     mysql_close(self::$db);
   }
