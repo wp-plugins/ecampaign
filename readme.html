@@ -1,3 +1,4 @@
+<html>
 <head>
 <style type="text/css">
   body, td {font-family: sans-serif ; font-size: .8em }
@@ -7,7 +8,7 @@
 </head>
 <body>
 <h3>Ecampaign Admin guide</h3>
-<p>Updated for version 0.83  14th Nov 2011</p>
+<p>Updated for version 0.83  18th Dec 2011</p>
 <h3>Overview</h3>
 A plugin that allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post. Petition signatures and email activity is logged
@@ -23,6 +24,7 @@ and and viewable under the under the admin pages.
 	own mailbox. Then this plugin sends 
 	an email from the website visitor's email address to the campaign mailbox and 
 	the 'share by email' form (if declared) is revealed.</li>
+	<li>The plugin can optionally add the site visitor to the website as a wordpress user.</li>
 </ul>
 <h4>Step 2 : share by email (optional)</h4>
 <ul>
@@ -30,11 +32,11 @@ and and viewable under the under the admin pages.
 	<li>The website visitor edits the prepared email and clicks send.</li>
 	<li>This plugin sends the email from website visitor's email address to one or more friends (max 9).</li>
 </ul>
-<h3>Setting up an simple Email Action</h3>
+<h3>Setting up an Email Action using a site wide template</h3>
 The body of the pre-prepared email is wrapped by the [ecampaign][/ecampaign] tags on a 
 wordpress post or page.<br/>
 <code>
-<br/>[ecampaign targetEmail='john.smith@hightown.gov' subject="Planning application P1234, wind turbines on Windy Hill"]
+<br/>[ecampaign to='john.smith@hightown.gov' subject="Planning application P1234, wind turbines on Windy Hill"]
 <br/>I am writing in support of the planning application P1234 to construct a cluster of 
 wind turbines on Windy Hill.
 <br/><br/>
@@ -49,7 +51,7 @@ with an unlimited source of fossil free energy for many years.
 [/ecampaign]
 </code>
 <p>
-Copies of the outgoing emails are sent to the campaign email address. 
+The form is constructed using the Target form template on the Ecampaign page under settings.  Copies of the outgoing emails are sent to the campaign email address. 
 You can override the campaign email address on one particular action, see 'Configuring the ecampaign plugin attributes' below.
 </p>
 
@@ -89,7 +91,7 @@ for a wind farm on Windy Hill.  I hope you will as well.
 <h3>Customising the site wide templates</h3>
 <p>
 The forms above will be constructed using the Target form template and the Friend
-form template on the settings page.
+form template on the Ecampaign page under settings.
 You can add/remove/change the position of all the fields and the supporting text by 
 editing that template and saving the new settings.  If nothing else, the postal address 
 fields should be adjusted to match the country!
@@ -115,7 +117,7 @@ added to the petition are shown in the ecampaign log. The ecampaign view shows t
 name and address of the signatories.
 </p>
 
-<h3>Customising the form on one particular campaign</h3>
+<h3>Setting up an email action using a custom form</h3>
 <p>
 If you need more flexibility and want to use different forms for each campaign action,
 you can layout and define all the fields in the form inside the [ecampaign][/ecampaign] brackets. The easiest way
@@ -200,7 +202,8 @@ to be a wordpress limitation.
     <br/>Setting this value overrides the site wide test mode setting. 
     <br/>Use this (or the site wide setting) when setting up and testing a new campaign action. It prevents the 
     emails being sent to to the target address prematurely.</td></tr>
-  <tr><td>targetEmail</td><td>Multiple addresses should be separated by commas.</td></tr>
+  <tr><td>to</td><td>Email address of target. Addresses of multiple recipients should be separated by commas.</td></tr>
+  <tr><td>targetEmail</td><td>Alias for 'to' field, kept for back compatability.</td></tr>
   <tr><td>campaignEmail</td><td>Override the site wide setting. Blind copies of emails are sent to this address</td></tr>
   <tr><td>subject</td><td>subject line of email sent to target</td></tr>
   <tr><td>targetSubject</td><td>subject line of email sent to target.</td></tr>
@@ -256,10 +259,13 @@ wide templates in the ecampaign settings page.</p>
   <tr><td>{campaignEmail}</td><td>This is just a string placeholder. The form text is replaced by the actual campaign email address. 
   It is obfuscated by SPAN tags to make it less likely for spammers to find it in a web page.</td></tr>  
 
-  <tr><td>{counter}</td><td>This is just a string placeholder. The form text is replaced by the number of people that have taken 
-  actions on this page/post.</td></tr>  
+  <tr><td>{counter}</td><td>This is just a string placeholder. The form text is replaced by the number of actions that have been
+  completed on this page. </td></tr>  
   
-  <tr><td>{success}</td><td>This is just a string placeholder for the message sent to the site visitor after s/he has completed the campaign action. It can include HTML tags. It's position is irrelevant.</td></tr> 
+  <tr><td>{success}</td><td>This is just a string placeholder for the message sent to the site visitor after s/he has completed the 
+  campaign action. It can and probably ought to include HTML tags. The default class ecOK in conjuction with the default style sheet 
+  causes the success message to be printed in blue and bold to catch the site visitors eye.
+  It's position in the form is irrelevant.</td></tr> 
 
   <tr><td>{friendEmail}</td><td>Adds one empty field. Additional fields/recipients can be added added and removed by the user. 
   (Used by the EcampaignFriend class). </td></tr> 
@@ -278,6 +284,15 @@ wide templates in the ecampaign settings page.</p>
 To make a field mandatory, append an asterisk to the name of the field e.g. {name*}. Enforcement is done by the javascript in the browser.
 </p>
 
+<h4>Creating a Custom Field</h4>
+<p>
+Custom fields can be added to a template. For example, to prompt for organisation:
+</p>
+<code>
+{organisation}  or {organisation label='group name'} 
+</code>
+<p>Not that these fields are not used or saved but that can be passed or store, <a href="#subscription">see subscription</a>.
+</p>
 <h4><a name='fieldAttributes'/>Setting Field Attributes</a></h4>
 <p>
 Attributes can be added to any field. These attributes are conferred to the INPUT, TEXTAREA or DIV element 
@@ -291,30 +306,58 @@ that is being used to create the field. Examples are shown below:
 </p><p>
 {checkbox1 checked='checked'} pre checks a check box.
 </p><p>
-{name min=6}  'min' is not an official HTML attribute. It sets minimum number of characters of any field. 
-'min' is currently enforced at the server. Note that if a field is declared mandatory it only has to 
-meet the 'min' requirement if it is one or more characters long.   (Although 'min' is not a legal 
+{name data-min=6}  sets minimum number of characters of any field. 
+'data-min' is currently enforced at the server. Note that if a field is declared mandatory it only has to 
+meet the 'data-min' requirement if it is one or more characters long.   (Although 'data-min' is not a legal 
 HTML attribute, most browsers accept additional attributes).
 </p>
 <p>Attribute values can be single or double quoted. However some wordpress themes convert straight quotes
 to curly quotes and 
 <a href='http://www.fayazmiraz.com/disable-auto-curly-quotes-in-wordpress/'>this conversion has to be disabled.</a>.
 </p>
-
-<h3><a name='subscription'>Subscribing site visitors who opt-in to an external email list</a></h3>
+<h3><a name='subscription'>Subscribing site visitors to a list</a></h3>
+<h4>Introduction</h4>
 <p>
-Ecampaign can directly add site visitors to <a href="http://www.phplist.com/">PHPList</a> if they 
-opt-in using a checkbox on the form. 
+Subscription functionality is provided by the configurable site visitors subscription class.
+Site visitors should not normally be added to a list or table without the visitor opting using
+one of the checkboxes. The checkbox is specified in configuration string below the 
+subscription class on the ecampaign settings page.
+</p>
+<p>
 Successful subscriptions are logged as well as any error and exceptions that occur.  Errors and 
 exceptions are not reported back to the user because any failed subscriptions can be subsequently
 be added manually to PHPList. Note that if a revisiting site visitor unchecks the box, the visitor 
-is not unsubscribed from that list.) 
+is not unsubscribed from that list.
 </p>
+<h4>Registering site visitors as wordpress users</h4>
 <p>
-The configuration string is fiddly. At present it consists of:
+Using the class EcampaignSubscribeUser, site visitors can be added as wordpress users 
+if they opt-in using a checkbox on the form. 
+The checkbox used to opt-in is defined in the configuration screen, for example to register site
+visitors who opt-in using checkbox2 use:
 </p>
 <code>
-checkbox1='PHPList No' checkbox1='PHPList No' configFile='Full server path to PHPList configuration file'
+checkbox2='on'
+</code>
+<p>Note that new wordpress users are given a 12 character random password which they can 
+reset, and they can update and delete their account. Fields in the template that have the 
+attribute save=usermeta are stored in the usermeta for the wordpress user. For example 
+to add a prompt for group name and store in the field organisation:  
+</p>
+<code>
+{organisation save=usermeta label='Group name' size='60' data-min=4}
+</code>
+<p>These additional fields can be viewed in the 'User Profile' view of the ecampaign log.
+</p>
+<h4>Adding site visitors to an external email list</h4>
+<p>
+Using the class EcampaignPHPList, site visitors can be added to a specific <a href="http://www.phplist.com/">PHPList</a>. 
+</p>
+<p>
+The configuration string is fiddly but allows users to register for two different lists. It consists of:
+</p>
+<code>
+checkbox1='PHPList No' checkbox2='PHPList No' configFile='Full server path to PHPList configuration file'
 </code>
 <p>
 The config file is PHPList's own config.php that contains the database username and password etc.
@@ -323,21 +366,17 @@ column of the phplist/public_html/lists/admin/?page=list page. The first list is
 to map checkboxes from specific actions specific pages to specific email lists.
 </p>
 <p>
-An example configuration is shown below:
+In the example configuration below, site visitors who check checkbox1 will be subscribed to PHPList No 6. 
 </p>
 <code>
 checkbox1=6 configFile="/home/web/phplist/public_html/lists/config/config.php"
 </code>
 <p>
-In the above example, site visitors who check checkbox1 will be subscribed to PHPList No 6. 
-</p>
-<p>
-The interface to PHPList is provided by the EcampaignPHPList class. 
 PHPlist does not have an API that would allow emails addresses to be easily added. Therefore the 
 ecampaign adds the new subscribers directly to the database. This has been tested against 
 PHPList 2.10.17. However PHPList database schema changes may require changes to EcampapignPHPList.  
 </p>
-<h3>Subscribing site visitors to other email lists</h3>
+<h4>Developer note: Subscribing site visitors to other email lists</h4>
 <p>It is possible to use another class to subscribe to other lists.</p>
 The class should implement the methods: 
 <ul>
@@ -443,3 +482,4 @@ error messages which aren't available through the wordpress API via wp_mail.
 
 
 </body>
+</html>
