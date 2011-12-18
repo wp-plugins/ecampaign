@@ -53,7 +53,7 @@ class EcampaignField
   function writeButton()
   {
     $id = self::nextID();
-    $replace = "<input type='button' name='$this->name' id='$id' $this->attributes value=\"{$this->label}\">";
+    $replace = "<input type='button' name='$this->name' id='$id' $this->attributes value=\"{$this->label}\" />";
     if (!isset($this->wrapper))
       return $replace ;
     return "<div class='$this->wrapper'>\r\n".$replace."</div>\r\n";
@@ -145,12 +145,12 @@ class EcampaignField
     if (empty($this->value))
       if (!$this->mandatory)
         return $this ;
+    $attributes = self::parseAttributes($this->attributes);
 
-    $count = preg_match('$min=([\w]+)$', $this->attributes, $matches);
-    if ($count == 0)
+    if (empty($attributes['data-min']))
       return $this ;    // no min specified
 
-    $this->min = $matches[1] ;
+    $this->min = $attributes['data-min'];
     if (is_numeric($this->min))
     {
       if (strlen($this->value) < $this->min)
@@ -207,20 +207,20 @@ class EcampaignField
   }
 
   /**
-   * Take a string of attributes and remove all the duplicates
-   * while allowing the last definition of the attribute to take
-   * precedence.
+   * convert attribute map into string (reverses parseAttributes)
    *
    * Attributes can be single or double quoted.
    *
    * @param $attributes
    */
 
-  static function mergeAttributes($attributes)
+  static function serializeAttributes($map)
   {
-    $map = self::parseAttributes($attributes, false);
-    $s = "" ; foreach($map as $key=>$val)       // implode map.
-      $s.= $key."=".$val." " ;                  // relying on existing quotes
+    $s = "" ; foreach($map as $key=>$val)   // implode map.
+    {
+      if (!empty($val))
+        $s.= $key."=".$val." " ;            // relying on existing quotes
+    }
     return $s ;
   }
 

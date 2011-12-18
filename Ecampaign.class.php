@@ -111,26 +111,26 @@ class Ecampaign
   {
     $this->cannedFields = array(
       self::sTo           => array(__('To')),    // field lengths irrelevant
-      self::sSubject      => array(null,           "min=10 size=70"),
-      self::sBody         => array(null,           "min=30 columns=70 rows=10"),
-      self::sVisitorName  => array(__('Name'),     "min=4  size=20"),
-      self::sVisitorEmail => array(__('Email'),    "min=4  size=20", 'validateEmail'),
-      self::sAddress1     => array(__('Address 1'),"min=4  size=20"),
-      self::sAddress2     => array(__('Address 2'),"min=4  size=20"),
-      self::sAddress3     => array(__('Address 3'),"min=4  size=20"),
-      self::sCity         => array(__('City'),     "min=4  size=10"),
-      self::sPostcode     => array(__('Postcode'), "min=4  size=10"),
-      self::sUKPostcode   => array(__('Postcode'), "min=4  size=10", 'validateUKPostcode'),
-      self::sZipcode      => array(__('Zipcode'),  "min=5  size=10", 'validateZipcode'),
-      self::sState        => array(__('State'),    "min=2  size=2"),    // tx, ca
-      self::sCountry      => array(__('Country'),  "min=2  size=15"),   // us, uk
-      self::sVeriCode     => array(__('Code'),     "min=4  size=4"),
-      self::sCaptcha      => array(__('Captcha'),  "min=4  size=4"),
+      self::sSubject      => array(null,           "data-min='10' size='70'"),
+      self::sBody         => array(null,           "data-min='30' columns='70' rows='10'"),
+      self::sVisitorName  => array(__('Name'),     "data-min='4'  size='20'"),
+      self::sVisitorEmail => array(__('Email'),    "data-min='4'  size='20'", 'validateEmail'),
+      self::sAddress1     => array(__('Address 1'),"data-min='4'  size='20'"),
+      self::sAddress2     => array(__('Address 2'),"data-min='4'  size='20'"),
+      self::sAddress3     => array(__('Address 3'),"data-min='4'  size='20'"),
+      self::sCity         => array(__('City'),     "data-min='4'  size='10'"),
+      self::sPostcode     => array(__('Postcode'), "data-min='4'  size='10'"),
+      self::sUKPostcode   => array(__('Postcode'), "data-min='4'  size='10'", 'validateUKPostcode'),
+      self::sZipcode      => array(__('Zipcode'),  "data-min='5'  size='10'", 'validateZipcode'),
+      self::sState        => array(__('State'),    "data-min='2'  size='2'"),    // tx, ca
+      self::sCountry      => array(__('Country'),  "data-min='2'  size='15'"),   // us, uk
+      self::sVeriCode     => array(__('Code'),     "data-min='4'  size='4'"),
+      self::sCaptcha      => array(__('Captcha'),  "data-min='4'  size='4'"),
       self::sSend         => array(__('Send')),
       self::sSign         => array(__('Sign the petition')),
 
-      self::sFriendEmail  => array(__("Friend's email address") ,"min=0, size=15",'validateEmail'),
-      self::sFriendSend   => array(__('Send to friends'),        "min=0"),
+      self::sFriendEmail  => array(__("Friend's email address") ,"data-min='0', size=15'",'validateEmail'),
+      self::sFriendSend   => array(__('Send to friends'),        "data-min='0'"),
 
       self::sCampaignEmail=> array(null, "")              // so it gets saved as session data
     );
@@ -150,11 +150,12 @@ class Ecampaign
    *
    * @return array of EcampaignField
    */
+  const regexParseTemplate = '${(\w+)(\*)?((?:\s+[\w][\w-]+=(?:[%]?[\w]+|[\'\"\”][^\'\"\”]+[\'\"\”]))*)\s*([^}]*)}$' ;
 
   function parseTemplate($layout, $pageAttributes)
   {
     $parsedFields = array();
-    preg_match_all('${(\w+)(\*)?((?:\s+[\w][\w-]+=(?:[%]?[\w]+|[\'\"\”][^\'\"\”]+[\'\"\”]))*)\s*([^}]*)}$', $layout, $parsedFields);
+    preg_match_all(self::regexParseTemplate, $layout, $parsedFields);
     // the label and default sizes of all the supported fields are listed above.
     // special handling is handled in the case statement below.
 
@@ -174,14 +175,20 @@ class Ecampaign
       $knownField = $this->cannedFields[$noun];
 
       if (!isset($knownField))
-        $knownField = array('','');  // ignore fields like %xyz we don't recognise, they will stay in the text
+      {
+        $knownField = array($noun,'');  // ignore fields like %xyz we don't recognise, they will stay in the text
+        $efield->isCustom = true ;
+      }
+      // attributes in template or form are allowed to overwrite canned attributes
+      $attributeMap = EcampaignField::parseAttributes($knownField[1]." ".$parsedFields[3][$i]);
 
+      $efield->label = isset($attributeMap['label']) ? $attributeMap['label'] : $knownField[0];
+      $attributeMap['label'] = null ;  // remove label attribute from HTML
 
-      $efield->label = $knownField[0];
+      $efield->save = $attributeMap['save'];  $attributeMap['save'] = null;
 
+      $efield->attributes = EcampaignField::serializeAttributes($attributeMap);
       $efield->mandatory = $parsedFields[2][$i] == "*";
-      $efield->attributes = EcampaignField::mergeAttributes($knownField[1]." ".$parsedFields[3][$i]);
-
       $efield->value = $value = trim($parsedFields[4][$i]);
       $efield->validator = $knownField[2];
 

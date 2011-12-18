@@ -155,7 +155,7 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
   , '/ecampaign/securimage', '');
 
   $adminFields[] = array('ec_subscriptionClass',
-  __("Subscribe site visitors who opt-in using a checkbox to external email list using this class e.g. EcampaignPHPList"),'');
+  __("Subscribe site visitors who opt-in using a checkbox to external email list using this class e.g. EcampaignSubscribeUser, EcampaignPHPList"),'');
 
   $adminFields[] = array('ec_subscriptionParams',
   __("Parameters passed to instance of class above e.g. for PHPList 'checkbox2=6 configFile=/home/web/phplist/lists/config/config.php' ") .
@@ -316,15 +316,23 @@ function ec_options()
 <?php
 }
 
-function _analyzeTemplate($template)
+function _analyzeTemplate($template, $minimum=3)
 {
   $ecampaign = new Ecampaign;
+  $ecampaign->initializeCannedFields();
   $fields = $ecampaign->parseTemplate($template, array());
-  $num = count($fields);
-  $text = "<br/>$num fields in template.";
-  if ($num > 3)
-    return "<span style='color : blue'>$text</span>" ;
-  return "<span style='color : red'>$text. If you cannot see the error above cut and paste the
-  fields from the left hand pane to the right hand pane. </span>" ;
+  $numCustom = $numStandard = 0 ;
+  foreach($fields as $f)
+  {
+    if ($f->isCustom)
+      $numCustom++ ;
+    else
+      $numStandard++ ;
+  }
+  $text = "$numStandard preconfigured fields, $numCustom other fields in template.";
+  if ($numStandard > $minimum)
+    return "<span style='color : blue'><br/>$text</span>" ;
+  return "<span style='color : red'><br/>Warning: $text fields declared. At least $minimum standard fields expected. If you cannot see the
+  error above cut and paste the fields from the left hand pane to the right hand pane. </span>" ;
 }
 
