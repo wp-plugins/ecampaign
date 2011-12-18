@@ -10,55 +10,59 @@
 
 class EcampaignTableView
 {
-  private $tableName ;
-  function view($title, $tableName, $views, $fieldPresentations, $filterByFields)
+  private $visibleColumnSet, $from, $where, $orderBy = "date" ;
+  private $offset, $limit;
+  function view($title, $views, $fieldPresentations, $filterByFields)
   {
-    $this->tableName = $tableName ;
-
     $viewControl = new EcampaignString();
-    $visibleColumnSet = $this->addViewControl($viewControl, $views);
+    $this->visibleColumnSet = $this->addViewControl($viewControl, $views);
     $viewControl->wrap("span", "class='ecinline'");
 
+    $this->where = $this->visibleColumnSet['_where'];  unset($this->visibleColumnSet['_where']);
+    $this->from = $this->visibleColumnSet['_from'];  unset($this->visibleColumnSet['_from']);
+    $this->note = $this->visibleColumnSet['_note'];  unset($this->visibleColumnSet['_note']);
+
+    $visibleColumnNames = new EcampaignString(array_keys($this->visibleColumnSet));
+    $visibleColumns = $visibleColumnNames->toString();
+
     $columnSet = array(); foreach($views as $set)
-    $columnSet = array_merge($columnSet, $set);
+    {
+      $columnSet = array_merge($columnSet, $set);
+    }
 
     $this->header = $header ;
 
     $filterControls = new EcampaignString();
 
-    $whereClause = "" ;
     foreach($filterByFields as $field => $controlType)
     {
       switch ($controlType)
       {
         case 'select' :
-          $whereClause .= $this->addSelectFilterControl($filterControls, $columnSet, $field, $fieldPresentations[$field]);
+          $this->addSelectFilterControl($filterControls, $columnSet, $field, $fieldPresentations[$field]);
           break ;
 
         case 'hidden' :
-          $whereClause .= $this->addHiddenFilter($field);
+          $this->addHiddenFilter($field);
           break ;
       }
     }
-    $whereClause .= $this->addSearchBox($filterControls, $columnSet);
+    $this->addSearchBox($filterControls, $columnSet);
 
-    $totalRows = $this->getTotalRows($whereClause);
+    $totalRows = $this->getTotalRows();
 
     // note when 'numRows' button pressed, 'numRows' value intentionally overwrtten
 
-
-    $offset = "0" ; $limit = "10" ;
-
     $pageControl = new EcampaignString();
-    $this->addPageControl($pageControl, $offset, $limit, $totalRows);
+    $this->addPageControl($pageControl, $totalRows);
 
 //    $pageControl       ->wrap("form", "id='ecampaign-controls' class='ecrow1' ");
 
     $formatControl = new EcampaignString();
-    $this->addFormatControl($formatControl, $totalRows, $whereClause, $offset, $limit);
+    $this->addFormatControl($formatControl, $totalRows);
 
     $deleteControl = new EcampaignString();
-    $this->addDeleteControl($deleteControl, $totalRows, $whereClause, $offset, $limit);
+    $this->addDeleteControl($deleteControl, $totalRows);
 
     $block1 = new EcampaignString('Filters');
     $block1->add($filterControls)
@@ -80,21 +84,32 @@ class EcampaignTableView
     $form->add($block2)->add($block3)
          ->wrap("form")
          ->add($deleteControl)
+         ->add(isset($this->note) ? $this->note : "")
          ->wrap("div", "id='eclog'");
 
+    global $wpdb ;
+
+    $drows = $wpdb->get_var("SET @rownum = 0; ");
+    $drows = $wpdb->get_results(
+    "SELECT $visibleColumns
+    from $this->from WHERE 1=1 $this->where ORDER BY $this->orderBy
+    LIMIT $this->limit OFFSET $this->offset", ARRAY_A);
+
     if (!isset($_REQUEST['format']))
-      $form->add($this->addTableContent($visibleColumnSet, $fieldPresentations, $whereClause, $orderBy = "date", $offset, $limit));
+      $form->add($this->addTableContent($drows, $fieldPresentations));
     else
-      $form->add($this->writeFile($visibleColumnSet, $whereClause, $orderBy = "date", $offset, $limit));
+      $form->add($this->writeFile($drows));
 
     $page = new EcampaignString($title);
     $page->wrap("h2")
          ->wrap("a","href='?page=ecampaign-log' style='text-decoration:none' ")
          ->add($form);
 
- //   $footer = new EcampaignString($wpdb->last_query);  // useful when debugging
- //   $footer->wrap("p")->addTo($page);
-
+    if (false)
+    {
+      $footer = new EcampaignString($wpdb->last_query);  // useful when debugging
+      $footer->wrap("p")->addTo($page);
+    }
     return $page->asHtml();
   }
 
@@ -117,7 +132,7 @@ class EcampaignTableView
   function addHiddenFilter($columnName)
   {
     $filterValue = urldecode($_GET[$columnName]);
-    return (empty($filterValue)) ?  "" : " and $columnName = '$filterValue' " ;
+    $this->where .= empty($filterValue) ?  "" : " and $columnName = '$filterValue' " ;
   }
 
 
@@ -126,7 +141,7 @@ class EcampaignTableView
     global $wpdb ;
     $wildSelection = htmlspecialchars("View all ". $columnSet[$columnName] . "s");
 
-    $dbrows = $wpdb->get_results("SELECT $columnName, count(*) FROM $this->tableName GROUP BY ". $columnName, ARRAY_A);
+    $dbrows = $wpdb->get_results("SELECT $columnName, count(*) FROM $this->from GROUP BY ". $columnName, ARRAY_A);
 
     array_unshift($dbrows, array($columnName=>''));
 
@@ -144,35 +159,36 @@ class EcampaignTableView
     $s->wrap("select", "name='$columnName'");
     $s->addTo($sb);
 
-    return $selected == $all ? "" : " and $columnName = '$selected' " ;
+    $this->where .= $selected == $all ? "" : " and $columnName = '$selected' " ;
   }
 
-  function addSearchBox($sb, $columnSet)
+  function addSearchBox($sb)
   {
     $search =  urldecode($_GET['search']);
     $sb->add("<label class=ecsearch for=s1>Search</label><input id=s1 class=ecsearch name=search type='text' value='$search' />");    // render search box
     if (empty($search)) return ;
-    foreach ($columnSet as $column => $name)
+    foreach ($this->visibleColumnSet as $column => $name)
     {
-      $where .= " or $column LIKE '%".mysql_real_escape_string($search)."%' ";
+      $colWords = split("as", $column);
+      $where .= " or $colWords[0] LIKE '%".mysql_real_escape_string($search)."%' ";
     }
-    return " and (false $where)" ;
+    $this->where .= " and (false $where)" ;
   }
 
-  function addPageControl($scroll, &$offset, &$limit, $totalRows)
+  function addPageControl($scroll, $totalRows)
   {
-    $offset = !empty($_GET['offset']) ? $_GET['offset'] : '0' ;
-    $limit = !empty($_GET['pageSize']) ? $_GET['pageSize'] : '20' ;
-    $lastPage = intval(($totalRows-1)/$limit) + 1 ; // numbering from 1
-    if ($offset > $totalRows)              // happens after filtering
-      $offset = max(0, $totalRows-$limit); // show last page
-    $currentPage = intval($offset/$limit) + 1 ;
+    $this->offset = !empty($_GET['offset']) ? $_GET['offset'] : '0' ;
+    $this->limit = !empty($_GET['pageSize']) ? $_GET['pageSize'] : '20' ;
+    $lastPage = intval(($totalRows-1)/$this->limit) + 1 ; // numbering from 1
+    if ($this->offset > $totalRows)              // happens after filtering
+      $this->offset = max(0, $totalRows-$this->limit); // show last page
+    $currentPage = intval($this->offset/$this->limit) + 1 ;
 
     $pageNumbers = new EcampaignString();
 
     for ($p = 1 ; $p <= $lastPage ; )
     {
-      $o = ($p-1) * $limit ;
+      $o = ($p-1) * $this->limit ;
 
       if ($p > 1+1 && $p < $currentPage-3)  // skip link for early pages
       {
@@ -202,16 +218,16 @@ class EcampaignTableView
 
     $pageInput = new EcampaignString();
     $pageInput->add("<label for='offset'>Offset</label>")
-              ->add("<input id='offset' type='text' name='offset' size=4  value=$offset />")
+              ->add("<input id='offset' type='text' name='offset' size=4' value='$this->offset' />")
               ->add("<label for='pageSize'>Page Size</label>")
-              ->add("<input id='pageSize' type='text' name='pageSize' size=2  value=$limit />");
+              ->add("<input id='pageSize' type='text' name='pageSize' size='2'  value='$this->limit' />");
 
     $scroll->add($pageNumbers->wrap("span", "class='ecinline'"))
            ->add($pageInput->wrap("span", "class='ecinline'"));
   }
 
 
-  function addFormatControl($sb, $totalRows, $whereClause, $offset, $limit)
+  function addFormatControl($sb, $totalRows)
   {
     $q1 = $this->createQuery(array("format"=>"CSV","noheader"=>true, "offset"=>0, "pageSize"=>100000));
     $q2 = $this->createQuery(array("format"=>"tab","noheader"=>true, "offset"=>0, "pageSize"=>100000));
@@ -222,14 +238,17 @@ class EcampaignTableView
   }
 
 
-  function addDeleteControl($sb, $totalRows, $whereClause, $offset, $limit)
+  function addDeleteControl($sb, $totalRows)
   {
+    $tables = split(" ", $this->from);  // cannot delete rows selected in a multi table join
+    if (count($tables) > 1) return ;
+
     $q = $this->createQuery(array());
 
     if ($_POST['delete'] == 'yes')
     {
       global $wpdb ;
-      $num = $wpdb->query("DELETE FROM $this->tableName WHERE 1=1 ". $whereClause);
+      $num = $wpdb->query("DELETE FROM $this->from WHERE 1=1 ". $this->where);
 
       $message = "<div class='ecrow1 ecstatus'>$num rows deleted.</div>";
     }
@@ -260,15 +279,9 @@ class EcampaignTableView
   }
 
 
-  function addTableContent($columnSet, $presentations, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
+  function addTableContent($drows, $presentations)
   {
-    global $wpdb ;
-
-    $cols = new EcampaignString(array_keys($columnSet));
-    $drows = $wpdb->get_var("SET @rownum = 0; ");
-    $drows = $wpdb->get_results("SELECT {$cols->toString()} FROM $this->tableName WHERE 1=1 $where ORDER BY $orderBy LIMIT $limit OFFSET $offset", ARRAY_A);
-
-    $thead = new EcampaignString(array_values($columnSet));
+    $thead = new EcampaignString(array_values($this->visibleColumnSet));
     $trows = new EcampaignString();
     $tcols = new EcampaignString();
 
@@ -292,26 +305,16 @@ class EcampaignTableView
   /**
    * write raw downloadable formats CSV and tab separate
    *
-   * @param $columnSet
-   * @param $where
-   * @param $orderBy
-   * @param $offset
-   * @param $limit
+   * @param $drow results from db
    */
 
-  function writeFile($columnSet, $where = "" , $orderBy = "date" , $offset = 0,  $limit = 1)
+  function writeFile($drows)
   {
-    global $wpdb ;
-
-    $cols = new EcampaignString(array_keys($columnSet));
-    $drows = $wpdb->get_var("SET @rownum = 0; ");
-    $drows = $wpdb->get_results("SELECT {$cols->toString()} FROM $this->tableName WHERE 1=1 $where ORDER BY $orderBy LIMIT $limit OFFSET $offset", ARRAY_A);
-
-    $thead = new EcampaignString(array_values($columnSet));
+    $thead = new EcampaignString(array_values($this->visibleColumnSet));
     $trows = new EcampaignString();
     $tcols = new EcampaignString();
 
-  // handle raw downloadable formats CSV and tab separate
+    // handle raw downloadable formats CSV and tab separate
     switch (strtolower($_REQUEST['format']))
     {
       case 'tab' : $glue = "\t" ; break ;
@@ -344,13 +347,13 @@ class EcampaignTableView
     exit(0);
   }
 
-  function getTotalRows($whereClause)
+  function getTotalRows()
   {
     $totalRows = $_GET['totalRows'] ;
     if (!is_numeric($totalRows))
     {
       global $wpdb ;
-      $totalRows = $wpdb->get_var("SELECT count(*) FROM $this->tableName WHERE 1=1 ". $whereClause);
+      $totalRows = $wpdb->get_var("SELECT count(*) FROM $this->from WHERE 1=1 ". $this->where);
     }
     return $totalRows ;
   }

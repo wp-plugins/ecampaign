@@ -41,7 +41,7 @@ class EcampaignLog
           info VARCHAR(1024) NOT NULL,
           postID BIGINT(20) NOT NULL,
           PRIMARY KEY  (id),
-	  INDEX postID_visitorEmail (postID, visitorEmail),
+	        INDEX postID_visitorEmail (postID, visitorEmail),
         );" ;
 
       require_once(ABSPATH . 'wp-admin/upgrade-functions.php');
@@ -119,9 +119,11 @@ class EcampaignLog
 
   function view()
   {
+    global $wpdb ;
     $views = array(
       __("Normal") =>
         array(
+          '_from' => self::$tableName,
           'id' => __('ID'),
           'date' => __('date'),
           'state' => __('action'),
@@ -136,7 +138,7 @@ class EcampaignLog
       ),
       __("Petition") =>
         array(
-//          '@rownum:=@rownum+1' => __('num'),
+          '_from' => self::$tableName,
           'date' => __('date'),
           'visitorName' => __('name'),
           'visitorEmail' => __('email'),
@@ -144,12 +146,18 @@ class EcampaignLog
       ),
       __("Email & Name") =>
         array(
-//          '@rownum:=@rownum+1' => __('num'),
+          '_from' => self::$tableName,
           'visitorEmail' => __('email'),
           'visitorName' => __('name')
       )
-
     );
+    // add special view to include user profiles
+    $fieldObject = get_option('scrm_fields');
+    if (isset($fieldObject))
+    {
+      $views['User Profile'] = $this->getUserProfileView($fieldObject);
+    }
+
     $fieldPresentations = array(
       'postID' => new _EcampaignPresentPostID(),
       'checkbox1' => new _EcampaignPresentCheckBox(),
@@ -157,7 +165,6 @@ class EcampaignLog
       'visitorEmail' => new _EcampaignPresentVisitorEmail(),
       'info' => new _EcampaignPresentInfo()
     );
-
 
     $filterByFields = array('state'=>'select',
                       'checkbox1'=>'select',
@@ -168,7 +175,41 @@ class EcampaignLog
     include_once dirname(__FILE__) . '/EcampaignTableView.class.php';
     $tableView = new EcampaignTableView();
 
-    return $tableView->view("Ecampaign log", self::$tableName, $views, $fieldPresentations, $filterByFields);
+    return $tableView->view("Ecampaign log", $views, $fieldPresentations, $filterByFields);
+  }
+
+  /**
+   * Build a messy SQL string to retrieve all the profile fields
+   * stored in wp_usermeta
+   *
+   * @param unknown_type $fieldObject
+   */
+
+  private function getUserProfileView($fieldObject)
+  {
+    global $wpdb ;
+    $umFields = unserialize($fieldObject);
+    $columns = array(
+        'log.visitorEmail' => __('email'),
+        'log.visitorName' => __('name'));
+
+    $join = "" ; $where = "" ;  $metaColumns = array();
+
+    $num=0 ; foreach($umFields as $f)
+    {
+      $join .= " left join {$wpdb->prefix}users as u$num on log.visitorEmail = u$num.user_email
+               left join {$wpdb->prefix}usermeta as um$num on u$num.ID = um$num.user_id " ;
+      $where .= " and um$num.meta_key='{$f['name']}' ";
+      $metaColumns["um$num.meta_value as {$f['name']} "] = $f['title'] ;
+      $num++  ;
+    }
+    $userMetaView = array("_from" => self::$tableName . " as log $join ",
+                          "_where" => $where,
+                          "_note"=>
+    'Use the <a href="http://wordpress.org/extend/plugins/simple-crm/">CRM plugin</a> to
+    <a href="options-general.php?page=scrm">edit the user profile fields displayed</a>' );
+
+    return array_merge($columns, $metaColumns, $userMetaView);
   }
 }
 
