@@ -375,6 +375,16 @@ class EcampaignTableView
       if ($count == 0 && !empty($keyPair))
        $q .= "$keyPair" ;
     }
-    return $q ;
+    return self::trimQuery($q);
+  }
+
+  /**
+   * remove all the arguments that empty values (to reduce url lengths)
+   * @param unknown_type $q
+   */
+  static function trimQuery($q)
+  {
+    $q1 = preg_replace("/[^&]+=(?:&|$)/", "", $q);
+    return $q1 ;
   }
 }
