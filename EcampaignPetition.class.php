@@ -173,10 +173,12 @@ class EcampaignPetition extends Ecampaign
     $fieldSet = $this->fieldSet;
 
     $mailer = self::getPhpMailer();
-    $mailer->Subject = $fieldSet->subject ? $fieldSet->subject : "Petition signed" ;  //toto use blog post name
+    $post = get_post($fieldSet->postID);
+    $mailer->Subject = !empty($post->post_title) ? $post->post_title : "Petition signed" ;
     $mailer->From = $fieldSet->campaignEmail ;
     $mailer->FromName = get_bloginfo("name");
     $mailer->AddAddress($fieldSet->visitorEmail, $fieldSet->visitorName);
+
 
     if ($this->log->recordExists(EcampaignLog::tSign, $fieldSet->visitorEmail, '', $fieldSet->postID))
     {
@@ -186,14 +188,15 @@ class EcampaignPetition extends Ecampaign
     }
     $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);    // name added to petition !
 
-    $mailer->Body = $fieldSet->subject . "\r\n\r\n".
-      sprintf(__("Thank you for signing this petition."));
-
-    $success = $mailer->Send();
-
-    if (!$success)
+    $body = get_option("ec_confirmationEmail");
+    if (!empty($body))
     {
-      throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
+      $mailer->Body = $body;
+      $success = $mailer->Send();
+      if (!$success)
+      {
+        throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
+      }
     }
 
     $this->subscribe($fieldSet);
