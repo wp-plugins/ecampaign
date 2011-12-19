@@ -20,7 +20,7 @@ function ec_admin_menu()
 
 /**
  * Bind these options to settings page which will make
- * wordpress save them. Not declared, not saved!
+ * wordpress save them. Not declared, settings cannot saved!
  *
  * @return unknown_type
  */
@@ -160,7 +160,8 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
   , '/ecampaign/securimage', '');
 
   $adminFields[] = array('ec_subscriptionClass',
-  __("Subscribe site visitors who opt-in using a checkbox to external email list using this class e.g. EcampaignPHPList"),'');
+  __("Capture site visitors who opt-in by registering them as site users (EcampaignSubscribeUser),
+  or adding them to an external email list using (EcampaignPHPList)"),'');
 
   $adminFields[] = array('ec_subscriptionParams',
   __("Parameters passed to instance of class above e.g. for PHPList 'checkbox2=6 configFile=/home/web/phplist/lists/config/config.php' ") .
@@ -216,70 +217,26 @@ function ec_options()
         </td>
         </tr>
 
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_campaignEmail"] ?> </th>
-        <td><input type="text" name="ec_campaignEmail" size='35' value="<?php echo get_option('ec_campaignEmail'); ?>" /></td>
-        </tr>
-        <tr valign="top">
-        <th scope="row" colspan="2"><?php echo $prompt["ec_layout"] ?></th>
-        </tr>
-        <tr valign="top">
-        <td>default:<br/><textarea name="ec_91" rows='27' cols='40' readonly='readonly'><?php echo  $default['ec_layout']; ?></textarea></td>
-        <td>current:<br/><textarea name="ec_layout" rows='27' cols='40'><?php echo get_option('ec_layout'); ?></textarea>
-        <?php echo _analyzeTemplate(get_option('ec_layout')) ?></td>
-        </tr>
+        <?php _renderInputField($prompt, $default, 'ec_campaignEmail') ?>
 
-        <tr valign="top">
-        <th scope="row" colspan="2"><?php echo $prompt["ec_petitionLayout"]  ?> </th>
-        </tr>
-        <tr valign="top">
+        <?php _renderDualTextArea($prompt, $default, 'ec_layout', 26) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmail', 4, 0) ?>
 
-        <td>default:<br/><textarea name="ec_93" rows='21' cols='40' readonly='readonly'><?php echo $default['ec_petitionLayout']; ?></textarea></td>
-        <td>current:<br/><textarea name="ec_petitionLayout" rows='21' cols='40'><?php echo get_option('ec_petitionLayout'); ?></textarea>
-        <?php echo _analyzeTemplate(get_option('ec_petitionLayout')) ?> </td>
-        </tr>
-
-        <tr valign="top">
-        <th scope="row" colspan="2"><?php echo $prompt["ec_friendsLayout"]  ?> </th>
-        </tr>
-        <tr valign="top">
-
-        <td>default:<br/><textarea name="ec_95" rows='6' cols='40' readonly='readonly'><?php echo $default['ec_friendsLayout']; ?></textarea></td>
-        <td>current:<br/><textarea name="ec_friendsLayout" rows='6' cols='40'><?php echo get_option('ec_friendsLayout'); ?></textarea>
-        <?php echo _analyzeTemplate(get_option('ec_friendsLayout')) ?> </td>
-        </tr>
-
-        <tr valign="top">
-        <th scope="row" colspan="2"><?php echo $prompt["ec_confirmationEmail"]  ?> </th>
-        </tr>
-        <tr valign="top">
-
-        <td>default:<br/><textarea name="ec_97" rows='6' cols='40' readonly='readonly'><?php echo $default['ec_confirmationEmail']; ?></textarea></td>
-        <td>current:<br/><textarea name="ec_confirmationEmail" rows='6' cols='40'><?php echo get_option('ec_confirmationEmail'); ?></textarea>
-        <?php echo _analyzeTemplate(get_option('ec_confirmationEmail'), 0) ?> </td>
-        </tr>
-
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_mailer"] ?></th>
-        <td><input type="text" name="ec_mailer" size='10' value="<?php echo get_option('ec_mailer'); ?>" />
-        </td>
-        </tr>
+        <?php _renderInputField($prompt, $default, 'ec_mailer') ?>
 
         <tr valign="top">
         <th scope="row"><?php echo $prompt["ec_checkdnsrr"] ?> </th>
-        <td><input type="checkbox" name="ec_checkdnsrr" value='1' <?php checked(get_option('ec_checkdnsrr'), 1); ?> /></td>
+        <td><input type="checkbox" name="ec_checkdnsrr" value=1 <?php checked(get_option('ec_checkdnsrr'), 1); ?> /></td>
         </tr>
 
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_captchadir"] ?></th>
-        <td><input type="text" name="ec_captchadir" size='40' value="<?php echo get_option('ec_captchadir'); ?>" /></td>
-        </tr>
+        <?php _renderInputField($prompt, $default, 'ec_captchadir') ?>
 
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_subscriptionClass"] ?></th>
-        <td><input type="text" name="ec_subscriptionClass" size='40' value="<?php echo get_option('ec_subscriptionClass'); ?>" />
         <?php
+
         $listClassPath = get_option('ec_subscriptionClass');
+        $msg1 ="" ;  $msg2  = ""  ;
         if (!empty($listClassPath))
         {
           try {
@@ -287,33 +244,23 @@ function ec_options()
           }
           catch (Exception $e)
           {
-            echo "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
+            $msg1 = "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
           }
         }
-        ?></td>
-        </tr>
 
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_subscriptionParams"] ?></th>
-        <td><textarea rows=4 cols=40 name="ec_subscriptionParams"><?php echo get_option('ec_subscriptionParams'); ?></textarea>
-        <?php if (!empty($list))
+        if (!empty($list))
         {
           try {
-            echo "<br/><span style='color : red'>" . $list->checkConfiguration() . "</span>" ;
+            $msg2 = "<br/><span style='color : red'>" . $list->checkConfiguration() . "</span>" ;
           }
           catch (Exception $e)
           {
-            echo "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
+            $msg2 = "<br/><span style='color : red'>" . $e->getMessage() . "</span>" ;
           }
         }
-        ?></td>
-        </tr>
-
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_thirdPartyKey"] ?></th>
-        <td><input type="text" name="ec_thirdPartyKey" size='40' value="<?php echo get_option('ec_thirdPartyKey'); ?>" />
-        </td>
-        </tr>
+        _renderInputField($prompt, $default, 'ec_subscriptionClass', $msg1);
+        _renderDualTextArea($prompt, $default, 'ec_subscriptionParams', 0, $msg2) ;
+        _renderInputField($prompt, $default, 'ec_thirdPartyKey') ?>
 
     </table>
 
@@ -331,7 +278,37 @@ function ec_options()
 <?php
 }
 
-function _analyzeTemplate($template, $minimum=3)
+
+function _renderInputField($prompt, $default, $tname, $msg = "")
+{
+  ?>
+  <tr valign="top">
+  <th scope="row"><?php echo $prompt[$tname] ?> </th>
+  <td><input type="text" name="<?php echo $tname?>" size='35' value="<?php echo get_option($tname); ?>" />
+  <?php echo $msg ?></td>
+  </tr>
+  <?php
+}
+
+
+
+function _renderDualTextArea($prompt, $default, $tname, $rows, $other="")
+{
+  ?>
+  <tr valign="top">
+  <th scope="row" colspan="2"><?php echo $prompt[$tname] ?> </th>
+  </tr>
+
+  <tr valign="top">
+  <td>default:<br/><textarea name="<?php echo $tname?>-d" rows=<?php echo "'$rows'" ?> cols='40' readonly='readonly'><?php echo  $default[$tname]; ?></textarea></td>
+  <td>current:<br/><textarea name="<?php echo $tname?>" rows=<?php echo "'$rows'" ?> cols='40'><?php echo get_option($tname); ?></textarea>
+  <?php echo is_numeric($other) ? _analyzeTemplate(get_option($tname), $other) : $other ?></td>
+  </tr>
+  <?php
+}
+
+
+function _analyzeTemplate($template, $minimumFields)
 {
   $ecampaign = new Ecampaign;
   $ecampaign->initializeCannedFields();
