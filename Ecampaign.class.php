@@ -186,7 +186,7 @@ class Ecampaign
       $attributeMap['label'] = null ;  // remove label attribute from HTML
 
       $efield->save = $attributeMap['save'];  $attributeMap['save'] = null;
-
+      $efield->type = $attributeMap['type'];
       $efield->attributes = EcampaignField::serializeAttributes($attributeMap);
       $efield->mandatory = $parsedFields[2][$i] == "*";
       $efield->value = $value = trim($parsedFields[4][$i]);
@@ -571,16 +571,6 @@ class Ecampaign
         $html = "<div class='ecsend'>".$efield->writeButton()."</div><div class='ecstatus'></div>" ;
         break ;
 
-  /**
-   * this is inconsistent behaviour but just for checkboxes
-   * the label is taken from the value i.e. the text inside the {}
-   * and the initial value (checked or otherwise) has to be set using the checked attribute
-   */
-      case self::sCheckbox1 :
-      case self::sCheckbox2 :
-        $efield->label = $efield->value ;  $efield->value = null;
-        $html = $efield->writeCheckBox();
-        break ;
 
       case self::sFriendEmail :
         $efield->name = 'emailfriend1';
@@ -594,22 +584,44 @@ class Ecampaign
         break ;
 
       case self::sCounter :
+        $efield->isCustom =false ;
         $val = get_post_meta(get_the_ID(), self::ecCounter, true);
         $html = is_numeric($val)  ? $val : 0 ;
         break ;
 
       case self::sCampaignEmail :
+        $efield->isCustom =false ;
         $html = $efield->definition ? "" : self::breakupEmail($efield->value);
         break ;
 
       case self::sSuccessMessage :  // have to remove any para tags, new lines are just ignored
+        $efield->isCustom =false ;
         $efield->value = $this->replaceParagraphTagsWithNewlines($efield->value);
         $html = $efield->definition ? "" : $efield->value;
         break ;
 
+
+      case self::sCheckbox1 :
+      case self::sCheckbox2 :
+        $efield->type='checkbox' ;
+
       default :  // handles name, email, zipcode, postcode etc
-        $html = $efield->writeField();
-        break ;
+
+        // this is inconsistent behaviour but just for checkboxes
+        // the label is taken from the value i.e. the text inside the {}
+        // and the initial value (checked or otherwise) has to be set using the checked attribute
+
+        if ($efield->type=='checkbox')
+        {
+          $efield->label = $efield->value ;  $efield->value = null;
+          $html = $efield->writeCheckBox();
+          break ;
+        }
+        else
+        {
+          $html = $efield->writeField();
+          break ;
+        }
     }
     return $html ;
   }

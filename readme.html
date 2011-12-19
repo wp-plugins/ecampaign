@@ -248,7 +248,8 @@ wide templates in the ecampaign settings page.</p>
   but they will happily coexist.</td></tr>
 
   <tr><td>{checkbox1} {checkbox2}</td><td>Adds checkboxes and to a form e.g. {checkbox1 Check if you want to stay in touch} 
-  This data is collected in the ecampaign log (available through the wp-admin pages) and included in emails sent to campaignEmail.</td></tr>
+  There is nothing special about these checkboxes accept this data is collected in named columns in the 
+  ecampaign log (available through the wp-admin pages) and makes filtering very easy.</td></tr>
 
   <tr><td>{sign}</td><td>Adds a button to the form which when clicked adds vistor's name and address to ecampaign log. 
   Required in the form somewhere to add a name/address to a petition. (Used by the EcampaignPetition class)</td></tr>
@@ -289,13 +290,33 @@ To make a field mandatory, append an asterisk to the name of the field e.g. {nam
 Custom fields can be added to a template. For example, to prompt for organisation:
 </p>
 <code>
-{organisation}  or {organisation label='group name'} 
+{organisation} 
+{bike label='make of bicycle'} 
 </code>
-<p>Not that these fields are not used or saved but that can be passed or store, <a href="#subscription">see subscription</a>.
+<p>
+Checkboxes are similar.
+</p>
+<code>
+{foldable type='checkbox' My bike is foldable} 
+</code>
+<p>Not that these fields are not used but they are saved in the info field in ecampaign log. 
+The fields can also be passed to another service or stored, <a href="#subscription">see subscription</a>.
 </p>
 <h4><a name='fieldAttributes'/>Setting Field Attributes</a></h4>
 <p>
-Attributes can be added to any field. These attributes are conferred to the INPUT, TEXTAREA or DIV element 
+Attributes can be added to any field. There are special attributes, type, label and data-min. Examples are
+</p><p>
+{listsignup type='checkbox' checked='checked' Add me to the email list} Render a checkbox. The default is text field.
+</p><p>
+{organisation label='My organisation'} change the label to be something other than the field name.
+</p><p>
+{name data-min=6}  sets minimum number of characters of any field. 
+'data-min' is currently enforced at the server. Note that if a field is declared mandatory it only has to 
+meet the 'data-min' requirement if it is one or more characters long.   (Although 'data-min' is not a legal 
+HTML attribute, most browsers accept additional attributes).
+</p>
+<p>
+Any other attributes are conferred to the INPUT, TEXTAREA or DIV element 
 that is being used to create the field. Examples are shown below:
 </p><p>
 {body rows=10 cols=70} adjust size of the textarea holding the body field.
@@ -305,11 +326,6 @@ that is being used to create the field. Examples are shown below:
 {subject readonly='readonly'} prevents the site visitor from changing the subject line of the email.
 </p><p>
 {checkbox1 checked='checked'} pre checks a check box.
-</p><p>
-{name data-min=6}  sets minimum number of characters of any field. 
-'data-min' is currently enforced at the server. Note that if a field is declared mandatory it only has to 
-meet the 'data-min' requirement if it is one or more characters long.   (Although 'data-min' is not a legal 
-HTML attribute, most browsers accept additional attributes).
 </p>
 <p>Attribute values can be single or double quoted. However some wordpress themes convert straight quotes
 to curly quotes and 
@@ -337,7 +353,7 @@ The checkbox used to opt-in is defined in the configuration screen, for example 
 visitors who opt-in using checkbox2 use:
 </p>
 <code>
-checkbox2='on'
+optin=checkbox2
 </code>
 <p>Note that new wordpress users are given a 12 character random password which they can 
 reset, and they can update and delete their account. Fields in the template that have the 
@@ -354,22 +370,22 @@ to add a prompt for group name and store in the field organisation:
 Using the class EcampaignPHPList, site visitors can be added to a specific <a href="http://www.phplist.com/">PHPList</a>. 
 </p>
 <p>
-The configuration string is fiddly but allows users to register for two different lists. It consists of:
+The configuration string consists of:
 </p>
 <code>
-checkbox1='PHPList No' checkbox2='PHPList No' configFile='Full server path to PHPList configuration file'
+optin=checkbox-field-name listID='PHPList No' configFile='Full server path to PHPList configuration file'
 </code>
 <p>
 The config file is PHPList's own config.php that contains the database username and password etc.
 It need not be the actual file, it could be be just a copy kept locally. The 'PHPList No' is shown in the left hand 
-column of the phplist/public_html/lists/admin/?page=list page. The first list is numbered 1. It is not possible
-to map checkboxes from specific actions specific pages to specific email lists.
+column of the phplist/public_html/lists/admin/?page=list page. The first list is numbered 1. Any checkbox 
+(not just checkbox1 and checkbox2) can be mapped from a specific action to a specific email list.
 </p>
 <p>
 In the example configuration below, site visitors who check checkbox1 will be subscribed to PHPList No 6. 
 </p>
 <code>
-checkbox1=6 configFile="/home/web/phplist/public_html/lists/config/config.php"
+optin=checkbox1 listID=6 configFile="/home/web/phplist/public_html/lists/config/config.php"
 </code>
 <p>
 PHPlist does not have an API that would allow emails addresses to be easily added. Therefore the 

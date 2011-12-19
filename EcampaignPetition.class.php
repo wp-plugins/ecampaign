@@ -94,11 +94,11 @@ class EcampaignPetition extends Ecampaign
        "remote: " . "{$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
        "user-agent: " . $_SERVER['HTTP_USER_AGENT']);
 
-    if (isset($targetFields[self::sCheckbox1]))
-      $this->infoMap[] = "checkbox1: " . ($fieldSet->ch1 = isset($fieldSet->checkbox1) ?  "yes" : "no") ." ". $targetFields[self::sCheckbox1]->label ;
-
-    if (isset($targetFields[self::sCheckbox2]))
-      $this->infoMap[] = "checkbox2: " . ($fieldSet->ch2 = isset($fieldSet->checkbox2) ?  "yes" : "no") ." ". $targetFields[self::sCheckbox2]->label ;
+    foreach ($targetFields as $f) //save all the custom fields
+    {
+      if ($f->isCustom && (!empty($f->value) || isset($f->mandatory)))
+        $this->infoMap[] = "$f->name: $f->value " . ($f->type=="checkbox" ? $f->label : "") ;
+    }
 
     /* catcha and verification need to work together easily if only for test pUurposes.
      * verification field not displayed until captcha entered so don't check captcha again

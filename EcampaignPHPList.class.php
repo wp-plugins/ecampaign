@@ -38,8 +38,8 @@ class EcampaignPHPList
     $this->table_prefix = $table_prefix ;
     $this->usertable_prefix = $usertable_prefix ;
 
-    if (!isset($this->args['checkbox1']) && !isset($this->args['checkbox2']))
-      return (__("Configuration error: checkbox1=xx or checkbox2=yy expected where xx and yy are PHPList ids"));
+    if (!isset($this->args['optin']) || !isset($this->args['listID']))
+      return (__("Configuration error: optin=checkbox1 or listID=xxx expected where xx is the PHPList id"));
 
     if ($connectDB && empty(self::$db))
     {
@@ -62,13 +62,22 @@ class EcampaignPHPList
     if (!empty($msg))
       throw new Exception($msg);
 
-    $listID1 = $this->args['checkbox1'];
-    if (isset($listID1) && $fieldSet->checkbox1)
-      self::addEmailToList($fieldSet->visitorEmail, $listID1);
+    $optin = $this->args['optin'];
+    $optinb = $optin=='true' || $fieldSet->$optin == 'on' || $fieldSet->$optin == 1 ;
 
-    $listID2 = $this->args['checkbox2'];
-    if (isset($listID2) && $fieldSet->checkbox2)
-      self::addEmailToList($fieldSet->visitorEmail, $listID2);
+    if ($optin=='true')
+      $optinb = true ;
+    else
+    {
+      if (!isset($templateFields[$optin]))
+        throw new Exception("Configuration error: Unable to test $optin because it is not a valid field");
+
+      $optinb = $templateFields[$optin]->value == 'on' || $templateFields[$optin]->value == 1 ;
+    }
+
+    $listID = $this->args['listID'];
+    if ($optinb && is_numeric($listID))
+      self::addEmailToList($fieldSet->visitorEmail, $listID);
 
     mysql_close(self::$db);
   }

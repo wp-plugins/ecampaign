@@ -11,8 +11,8 @@ class EcampaignSubscribeUser
   function checkConfiguration($connectDB=false)
   {
     $this->args = EcampaignField::parseAttributes(get_option('ec_subscriptionParams'), true);
-    if (!isset($this->args['checkbox1']) && !isset($this->args['checkbox2']))
-      return (__("Configuration error: checkbox1=on or checkbox2=on expected"));
+    if (!isset($this->args['optin']))
+      return (__("Configuration error: optin='name-of-checkbox expected"));
 
     return "" ;
   }
@@ -24,18 +24,22 @@ class EcampaignSubscribeUser
    */
   function subscribe($templateFields, $fieldSet)
   {
-    $this->checkConfiguration();
+    $msg = self::checkConfiguration();
+    if (!empty($msg))
+      throw new Exception($msg);
 
-    $subscribe = false ;
-    $c1 = $this->args['checkbox1'];
-    if (!empty($c1) && $fieldSet->checkbox1)
-      $subscribe = true ;
+    $optin = $this->args['optin'];
 
-    $c2 = $this->args['checkbox2'];
-    if (!empty($c2) && $fieldSet->checkbox2)
-      $subscribe = true ;
+    if ($optin=='true')
+      $optinb = true ;
+    else
+    {
+      if (!isset($templateFields[$optin]))
+        throw new Exception("Configuration error: Unable to test $optin because it is not a valid field");
 
-    if (!$subscribe)
+      $optinb = $templateFields[$optin]->value == 'on' || $templateFields[$optin]->value == 1 ;
+    }
+    if (!$optinb)
       return ;
 
     $user = get_user_by('email', $fieldSet->visitorEmail);
