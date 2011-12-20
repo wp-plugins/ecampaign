@@ -13,7 +13,7 @@ include_once dirname(__FILE__) . '/Ecampaign.class.php';
 class EcampaignPetition extends Ecampaign
 {
   const jsRevealNextForm = "revealNextForm"  ;
-
+  const passwordLength = 4 ;
   function __construct()
   {
     parent::__construct();
@@ -94,9 +94,9 @@ class EcampaignPetition extends Ecampaign
       $hashCodes = array();
       $action = $fieldSet->targetEmail . $fieldSet->visitorEmail;
       // Nonce generated 0-12 hours ago
-      $hashCodes[] = substr(wp_hash($i . $action, 'nonce'), -12, 4);
+      $hashCodes[] = substr(wp_hash($i . $action, 'nonce'), -12, self::passwordLength);
       // Nonce generated 12-24 hours ago
-      $hashCodes[] = substr(wp_hash(($i - 1) . $action, 'nonce'), -12, 4);
+      $hashCodes[] = substr(wp_hash(($i - 1) . $action, 'nonce'), -12, self::passwordLength);
 
       if (empty($userSuppliedVerificationCode))
       {
@@ -111,7 +111,7 @@ class EcampaignPetition extends Ecampaign
         $this->log->write(EcampaignLog::tVerify, $fieldSet, "code:". $fieldSet->code);  //todo report error
         return array("success" => $success, //"getCode" => true,
                      "callbackJS" => 'revealVerificationField',
-                     "msg" => __("Please check your email. Please enter 4 characters in the empty code field above."));
+                     "msg" => __("Please check your email. Please enter the random characters in the empty code field above."));
       }
 
       if ((0 != strcasecmp($userSuppliedVerificationCode,$hashCodes[0]))
@@ -120,7 +120,8 @@ class EcampaignPetition extends Ecampaign
         return array("success" => false,
                      "msg" => __("The code entered $userSuppliedVerificationCode does not appear to match the value sent by email."));
       }
-      $this->log->write(EcampaignLog::$tVerified, $fieldSet, $this->infoMap);
+      $fieldSet->passwordProposed = $userSuppliedVerificationCode ;
+      $this->log->write(EcampaignLog::tVerified, $fieldSet, $this->infoMap);
     }
 
     // Increment counter. Note that this read-and-update is not an
@@ -164,11 +165,9 @@ class EcampaignPetition extends Ecampaign
     }
     $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);    // name added to petition !
 
+    $this->subscribe($fieldSet);  // and perhaps get back a user password
     $this->sendEmailToSiteVisitor("ec_confirmationEmail", $fieldSet);
-
-    $this->subscribe($fieldSet);
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $this->successMessage));
-
   }
   /*
    * email the original or updated message to the party or parties that are the target of

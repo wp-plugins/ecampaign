@@ -355,8 +355,17 @@ visitors who opt-in using checkbox2 use:
 <code>
 optin=checkbox2
 </code>
-<p>Note that new wordpress users are given a 12 character random password which they can 
-reset, and they can update and delete their account. Fields in the template that have the 
+<p>Note that new wordpress users are given a 6 character random password which they can 
+reset, and they can update and delete their account. However if site visitors are 
+required to verify their email address, the code supplied in the verification email
+will also become their wordpress account password. 
+</p>
+<p>
+Site visitors can be notified of passwords of freshly created wordpress accounts using either 
+the email verification email or the petition confirmation email. 
+</p>
+<p>
+Fields in the template that have the 
 attribute save=usermeta are stored in the usermeta for the wordpress user. For example 
 to add a prompt for group name and store in the field organisation:  
 </p>

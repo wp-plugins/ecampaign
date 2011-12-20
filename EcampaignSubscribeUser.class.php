@@ -45,18 +45,23 @@ class EcampaignSubscribeUser
     $user = get_user_by('email', $fieldSet->visitorEmail);
     if (!$user)
     {
-      $randomPassword = wp_generate_password( 12, false );
-      $userId = wp_create_user($fieldSet->visitorName, $randomPassword, $fieldSet->visitorEmail );
+      $p = count($fieldSet->passwordProposed >= EcampaignPetition::passwordLength) ?
+        $fieldSet->passwordProposed :  wp_generate_password(6, false );
+      $response = wp_create_user($fieldSet->visitorName, $p, $fieldSet->visitorEmail );
+      if (is_wp_error($response))
+        throw new Exception("Unable to create user account for $fieldSet->visitorName: {$response->get_error_message()}" );
+      $fieldSet->userID = $response ;
+      $fieldSet->password = $p;
     }
     else
     {
-      $userId = $user->ID ;
+      $userID = $user->ID ;
     }
     foreach ($templateFields as $field)
     {
       if (strcasecmp($field->save,'usermeta')==0 && !empty($field->value))
       {
-        $success = update_user_meta($userId, $field->name, $field->value);
+        $success = update_user_meta($userID, $field->name, $field->value);
         if (!success)
           throw Exception("Unable to update user meta data for $fieldSet->visitorEmail");
       }
