@@ -139,9 +139,39 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
 {friendEmail}
 {friendSend}');
 
-  $adminFields[] = array('ec_confirmationEmail',
+
+  $adminFields[] = array('ec_verificationEmailSubject',
+  __("Subject of email sent to site visitor with verification code."),
+  __("Verification code for ecampaign action."));
+
+
+  $adminFields[] = array('ec_verificationEmailBody',
+  __("Body of email sent to site visitor with verification code."),
+  __("Dear %visitorName,
+
+Thank you for verifying your email address. Please enter %code in the original web page in order to send your email.
+
+You have received this email from the website at
+
+%permalink
+
+If you believe that you have received this email in error please contact %campaignEmail."));
+
+  $adminFields[] = array('ec_confirmationEmailSubject',
+  __("Subject of email sent to site visitor to confirm name has been added to petition."),
+  __("Confirmation, your name has been added to a petition"));
+
+
+  $adminFields[] = array('ec_confirmationEmailBody',
   __("Text of email sent to site visitor to confirm name has been added to petition."),
-  __("Thank you for signing the petition."));
+  __("Dear %visitorName,
+
+Thank you for signing the petition
+
+%subject at
+%permalink
+
+If you believe that you have received this email in error please contact %campaignEmail."));
 
 
   // transport used by PHPMailer to send mail
@@ -164,7 +194,7 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
   or adding them to an external email list using (EcampaignPHPList)"),'');
 
   $adminFields[] = array('ec_subscriptionParams',
-  __("Parameters passed to instance of class above e.g. for PHPList 'checkbox2=6 configFile=/home/web/phplist/lists/config/config.php' ") .
+  __("Parameters passed to instance of class above. ") .
   Ecampaign::help('#subscription'),'');
 
   $adminFields[] = array('ec_thirdPartyKey', __("Optional third party API Key used to lookup elected representatives. ") .
@@ -219,10 +249,15 @@ function ec_options()
 
         <?php _renderInputField($prompt, $default, 'ec_campaignEmail') ?>
 
-        <?php _renderDualTextArea($prompt, $default, 'ec_layout', 26) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmail', 4, 0) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_layout', 26, 4) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20, 4) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6, 2) ?>
+
+        <?php _renderDualTextArea($prompt, $default, 'ec_verificationEmailSubject', 1) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_verificationEmailBody', 4) ?>
+
+        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmailSubject', 1) ?>
+        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmailBody', 4) ?>
 
         <?php _renderInputField($prompt, $default, 'ec_mailer') ?>
 

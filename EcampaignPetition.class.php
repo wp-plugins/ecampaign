@@ -23,42 +23,6 @@ class EcampaignPetition extends Ecampaign
     $this->validAjaxMethods[] = "send" ;
   }
 
-  /**
-   * if site options are configured to validate email address send the sitre visitor an
-   * email with a 4 digit code
-   *
-   * @return unknown_type
-   */
-
-  private function sendVerificationCode($fieldSet, $code)
-  {
-    $mailer = self::getPhpMailer();
-    $mailer->Subject = $fieldSet->subject ? $fieldSet->subject : "Verification code for ecampaign action" ;
-    $mailer->From = $fieldSet->campaignEmail ;
-    $mailer->FromName = get_bloginfo("name");
-    $mailer->AddAddress($fieldSet->visitorEmail, $fieldSet->visitorName);
-
-//    if ($this->options->bccCampaignEmail)
-//      $mailer->AddBCC($fieldSet->campaignEmail);    // this isn't really necessary
-
-    $mailer->Body = $fieldSet->subject . "\r\n\r\n".
-      sprintf(__("Thank you for verifying your email address. ".
-      "Please enter %s in the original web page in order to send your email."), $code);
-
-    $success = $mailer->Send();
-
-    if (!$success)
-    {
-      throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
-    }
-
-    $this->log->write(EcampaignLog::tVerify, $fieldSet, "code:". $code);
-
-    return array("success" => true, //"getCode" => true,
-                 "callbackJS" => 'revealVerificationField',
-                 "msg" => __("Please check your email. Please enter 4 characters in the empty code field above."));
-  }
-
 
   private function preProcess()
   {
@@ -70,6 +34,7 @@ class EcampaignPetition extends Ecampaign
 
     $fieldSet = $this->fieldSet = EcampaignField::requestPartialMap($desiredFields, array_merge($controlFields, self::$allFields));
 
+    $fieldSet->permalink = get_permalink($fieldSet->postID);
     $fieldSet->recipients =  self::parseEmailRecipients($_POST['recipientsEmail']) ;
 
     self::validateEmail($fieldSet->campaignEmail, "campaignEmail"); // throws exception if fails.
@@ -135,7 +100,18 @@ class EcampaignPetition extends Ecampaign
 
       if (empty($userSuppliedVerificationCode))
       {
-        return $this->sendVerificationCode($fieldSet, $hashCodes[0]);
+        /**
+         * if site options are configured to validate email address send the site visitor an
+         * email with a 4 digit code
+         *
+         * @return unknown_type
+         */
+        $fieldSet->code = $hashCodes[0];
+        $success = $this->sendEmailToSiteVisitor('ec_verificationEmail', $fieldSet);
+        $this->log->write(EcampaignLog::tVerify, $fieldSet, "code:". $fieldSet->code);  //todo report error
+        return array("success" => $success, //"getCode" => true,
+                     "callbackJS" => 'revealVerificationField',
+                     "msg" => __("Please check your email. Please enter 4 characters in the empty code field above."));
       }
 
       if ((0 != strcasecmp($userSuppliedVerificationCode,$hashCodes[0]))
@@ -188,16 +164,7 @@ class EcampaignPetition extends Ecampaign
     }
     $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);    // name added to petition !
 
-    $body = get_option("ec_confirmationEmail");
-    if (!empty($body))
-    {
-      $mailer->Body = $body;
-      $success = $mailer->Send();
-      if (!$success)
-      {
-        throw new Exception(__("unable to send email to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
-      }
-    }
+    $this->sendEmailToSiteVisitor("ec_confirmationEmail", $fieldSet);
 
     $this->subscribe($fieldSet);
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $this->successMessage));
@@ -279,6 +246,50 @@ class EcampaignPetition extends Ecampaign
 
     return $this->revealNextApplicableForm(array("success" => true, "msg" => $sMsg));
   }
+
+
+  function sendEmailToSiteVisitor($optionName, $fieldSet)
+  {
+    $mailer = self::getPhpMailer();
+    $mailer->From = $fieldSet->campaignEmail ;
+    $mailer->FromName = get_bloginfo("name");
+    $mailer->AddAddress($fieldSet->visitorEmail, $fieldSet->visitorName);
+
+    if (empty($fieldSet->subject))
+    {
+      $post = get_post($fieldSet->postID);  // support for pages? er no
+      if (!empty($post->post_title))
+        $fieldSet->subject = $post->post_title ;
+    }
+    $mailer->Subject = self::replaceTokens($optionName."Subject", $fieldSet);
+    $mailer->Body    = self::replaceTokens($optionName."Body", $fieldSet);
+
+    if (empty($mailer->Subject) || empty($mailer->Body))
+      return false ;
+
+    $success = $mailer->Send();
+
+    if (!$success)
+    {
+      throw new Exception(__("unable to send $optionName to") . " {$fieldSet->visitorEmail}, {$mailer->ErrorInfo}");
+    }
+    return true ;
+  }
+
+  function replaceTokens($optionName, $fieldSet)
+  {
+    $val = get_option($optionName, "");
+    return preg_replace_callback("/%(\w+)/",
+        array( &$this, 'replaceToken'),
+        $val);
+  }
+
+  function replaceToken($match)
+  {
+    $name = $match[1];
+    return isset($this->fieldSet->$name) ? $this->fieldSet->$name :"xxxxxx" ;
+  }
+
 
   /**
    * subscribe this site visitor to an email list
