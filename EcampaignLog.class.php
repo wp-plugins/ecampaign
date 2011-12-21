@@ -41,7 +41,7 @@ class EcampaignLog
           info VARCHAR(1024) NOT NULL,
           postID BIGINT(20) NOT NULL,
           PRIMARY KEY  (id),
-	        INDEX postID_visitorEmail (postID, visitorEmail),
+	        INDEX postID_visitorEmail (postID, visitorEmail)
         );" ;
 
       require_once(ABSPATH . 'wp-admin/upgrade-functions.php');
@@ -188,7 +188,7 @@ class EcampaignLog
   private function getUserProfileView($fieldObject)
   {
     global $wpdb ;
-    $umFields = unserialize($fieldObject);
+    $umFields = empty($fieldObject) ? array() : unserialize($fieldObject);
     $columns = array(
         'log.visitorEmail' => __('email'),
         'log.visitorName' => __('name'));
