@@ -24,7 +24,7 @@ class Ecampaign
   {
     $path = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
     $helpFile = "readme.html" ;
-    return "<a target='_blank' href='$path/$helpFile$anchor' title='Open ecampaign help page in another window'>". __("More help")."</a>" ;
+    return "<a target='_blank' href='$path$helpFile$anchor' title='$anchor: Open ecampaign help page in another window'>". __("More help")."</a>" ;
   }
 
   static $formList, $allFields = array();
@@ -112,7 +112,7 @@ class Ecampaign
     $this->cannedFields = array(
       self::sTo           => array(__('To')),    // field lengths irrelevant
       self::sSubject      => array(null,           "data-min='10' size='70'"),
-      self::sBody         => array(null,           "data-min='30' columns='70' rows='10'"),
+      self::sBody         => array(null,           "data-min='30' cols='70' rows='10'"),
       self::sVisitorName  => array(__('Name'),     "data-min='4'  size='20'"),
       self::sVisitorEmail => array(__('Email'),    "data-min='4'  size='20'", 'validateEmail'),
       self::sAddress1     => array(__('Address 1'),"data-min='4'  size='20'"),
