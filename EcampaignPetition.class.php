@@ -149,15 +149,8 @@ class EcampaignPetition extends Ecampaign
 
     $fieldSet = $this->fieldSet;
 
-    $mailer = self::getPhpMailer();
-    $post = get_post($fieldSet->postID);
-    $mailer->Subject = !empty($post->post_title) ? $post->post_title : "Petition signed" ;
-    $mailer->From = $fieldSet->campaignEmail ;
-    $mailer->FromName = get_bloginfo("name");
-    $mailer->AddAddress($fieldSet->visitorEmail, $fieldSet->visitorName);
-
-
-    if ($this->log->recordExists(EcampaignLog::tSign, $fieldSet->visitorEmail, '', $fieldSet->postID))
+    if (get_option('ec_preventDuplicateActions'))
+      if ($this->log->recordExists(EcampaignLog::tSign, $fieldSet->visitorEmail, '', $fieldSet->postID))
     {
       $response = array("success" => false,
                         "msg" => __("You have already signed this petition")) ;
@@ -196,7 +189,8 @@ class EcampaignPetition extends Ecampaign
       if (empty($fieldSet->target))
         $fieldSet->target = $recipient;
     }
-    if ($this->log->recordExists(EcampaignLog::tSend, $fieldSet->visitorEmail, $fieldSet->target, $fieldSet->postID))
+    if (get_option('ec_preventDuplicateActions'))
+      if ($this->log->recordExists(EcampaignLog::tSend, $fieldSet->visitorEmail, $fieldSet->target, $fieldSet->postID))
     {
       $response = array("success" => false,
                         "msg" => __("You have already sent an email about this issue to $fieldSet->target")) ;

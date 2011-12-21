@@ -80,6 +80,10 @@ function _getAdminFields()
   __("This feature prevents emails being sent to the target organisation accidentally.
      Emails normally sent to campaign mailbox and friends are still sent."), '');
 
+  $adminFields[] = array('ec_preventDuplicateActions',
+  __("Prevent site visitor from sending an email or signing a petition more than once.
+  It is useful to disable when testing. "), 1);
+
   // copies of emails are sent here
 
   $adminFields[] = array('ec_campaignEmail',
@@ -139,31 +143,34 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
 {friendEmail}
 {friendSend}');
 
+  $tokenHelp = "Use %fieldname to include the value of a captured field. $fieldsHelp";
 
   $adminFields[] = array('ec_verificationEmailSubject',
-  __("Subject of email sent to site visitor with verification code."),
+  __("Subject of email sent to site visitor with verification code. $tokenHelp"),
   __("Verification code for ecampaign action."));
 
 
   $adminFields[] = array('ec_verificationEmailBody',
-  __("Body of email sent to site visitor with verification code."),
+  __("Body of email sent to site visitor with verification code. You should include %code and can include %permalink
+      (but the %permalink cannot be used to complete verification). $tokenHelp"),
   __("Dear %visitorName,
 
 Thank you for verifying your email address. Please enter %code in the original web page in order to send your email.
 
-You have received this email from the website at
+You have received this email from this webpage
 
+%subject at
 %permalink
 
 If you believe that you have received this email in error please contact %campaignEmail."));
 
   $adminFields[] = array('ec_confirmationEmailSubject',
-  __("Subject of email sent to site visitor to confirm name has been added to petition."),
-  __("Confirmation, your name has been added to a petition"));
+  __("Subject of email sent to site visitor to confirm name has been added to petition. $tokenHelp"),
+  __("Your name has been added to the petition"));
 
 
   $adminFields[] = array('ec_confirmationEmailBody',
-  __("Text of email sent to site visitor to confirm name has been added to petition."),
+  __("Text of email sent to site visitor to confirm name has been added to petition. You can include %permalink. $tokenHelp"),
   __("Dear %visitorName,
 
 Thank you for signing the petition
@@ -179,7 +186,7 @@ If you believe that you have received this email in error please contact %campai
   __("'Mailer' transport used by PHPmailer (mail, sendmail, smtp)"), 'mail');
 
   $adminFields[] = array('ec_checkdnsrr',
-  __("Enable checking DNS records for the domain name when checking for a valid E-mail address. "), 'yes');
+  __("Enable checking DNS records for the domain name when checking for a valid E-mail address. "), 1);
 
   $captchaPresent = file_exists(WP_PLUGIN_DIR . get_option('ec_captchadir') . '/securimage.php') ;
 
@@ -195,7 +202,7 @@ If you believe that you have received this email in error please contact %campai
 
   $adminFields[] = array('ec_subscriptionParams',
   __("Parameters passed to instance of class above. ") .
-  Ecampaign::help('#subscription'),'');
+  Ecampaign::help('#subscription'),'optin=checkbox1');
 
   $adminFields[] = array('ec_thirdPartyKey', __("Optional third party API Key used to lookup elected representatives. ") .
   Ecampaign::help('#lookup'), '');
@@ -246,29 +253,25 @@ function ec_options()
         ?>
         </td>
         </tr>
-
-        <?php _renderInputField($prompt, $default, 'ec_campaignEmail') ?>
-
-        <?php _renderDualTextArea($prompt, $default, 'ec_layout', 26, 4) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20, 4) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6, 2) ?>
-
-        <?php _renderDualTextArea($prompt, $default, 'ec_verificationEmailSubject', 1) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_verificationEmailBody', 4) ?>
-
-        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmailSubject', 1) ?>
-        <?php _renderDualTextArea($prompt, $default, 'ec_confirmationEmailBody', 4) ?>
-
-        <?php _renderInputField($prompt, $default, 'ec_mailer') ?>
-
-        <tr valign="top">
-        <th scope="row"><?php echo $prompt["ec_checkdnsrr"] ?> </th>
-        <td><input type="checkbox" name="ec_checkdnsrr" value=1 <?php checked(get_option('ec_checkdnsrr'), 1); ?> /></td>
-        </tr>
-
-        <?php _renderInputField($prompt, $default, 'ec_captchadir') ?>
-
         <?php
+        _renderCheckbox($prompt, $default, 'ec_preventDuplicateActions');
+
+        _renderInputField($prompt, $default, 'ec_campaignEmail');
+
+        _renderDualTextArea($prompt, $default, 'ec_layout', 26, 4);
+        _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20, 4);
+        _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6, 2);
+
+        _renderDualTextArea($prompt, $default, 'ec_verificationEmailSubject', 1);
+        _renderDualTextArea($prompt, $default, 'ec_verificationEmailBody', 6);
+
+        _renderDualTextArea($prompt, $default, 'ec_confirmationEmailSubject', 1);
+        _renderDualTextArea($prompt, $default, 'ec_confirmationEmailBody', 6);
+
+        _renderInputField($prompt, $default, 'ec_mailer');
+        _renderCheckbox($prompt, $default, 'ec_checkdnsrr');
+
+        _renderInputField($prompt, $default, 'ec_captchadir');
 
         $listClassPath = get_option('ec_subscriptionClass');
         $msg1 ="" ;  $msg2  = ""  ;
@@ -319,13 +322,21 @@ function _renderInputField($prompt, $default, $tname, $msg = "")
   ?>
   <tr valign="top">
   <th scope="row"><?php echo $prompt[$tname] ?> </th>
-  <td><input type="text" name="<?php echo $tname?>" size='35' value="<?php echo get_option($tname); ?>" />
+  <td><input type="text" name="<?php echo $tname?>" size='35' value="<?php echo get_option($tname,$default[$tname]); ?>" />
   <?php echo $msg ?></td>
   </tr>
   <?php
 }
 
-
+function _renderCheckbox($prompt, $default, $tname)
+{
+  ?>
+  <tr valign="top">
+  <th scope="row"><?php echo $prompt[$tname] ?> </th>
+  <td><input type="checkbox" name="<?php echo $tname?>" value="1" <?php checked(get_option($tname,$default[$tname]), 1); ?> /></td>
+  </tr>
+  <?php
+}
 
 function _renderDualTextArea($prompt, $default, $tname, $rows, $other="")
 {
@@ -336,7 +347,7 @@ function _renderDualTextArea($prompt, $default, $tname, $rows, $other="")
 
   <tr valign="top">
   <td>default:<br/><textarea name="<?php echo $tname?>-d" rows=<?php echo "'$rows'" ?> cols='40' readonly='readonly'><?php echo  $default[$tname]; ?></textarea></td>
-  <td>current:<br/><textarea name="<?php echo $tname?>" rows=<?php echo "'$rows'" ?> cols='40'><?php echo get_option($tname); ?></textarea>
+  <td>current:<br/><textarea name="<?php echo $tname?>" rows=<?php echo "'$rows'" ?> cols='40'><?php echo get_option($tname, $default[$tname]); ?></textarea>
   <?php echo is_numeric($other) ? _analyzeTemplate(get_option($tname), $other) : $other ?></td>
   </tr>
   <?php
