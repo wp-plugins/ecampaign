@@ -19,10 +19,10 @@ or post. The supported sequence of events is:
 the text of the email.
 3. The visitor clicks on 'Sign' or 'Send'.
 4. If enabled, the site visitor receives an email containing a verification code, which must be rekeyed into the form 
-5a. If the site visitor is sending as email, an email is sent to the target email address(s) and copied to the visitor's email address. 
-5b. If the site visitor has signing a petition, a confirmation email is sent to him/her.
-6. An email that includes the referer, the visitors IP address and all keyed data is sent to the campaign email address. 
-7. A normally hidden form, which can contain social media buttons e.g. the http://www.addthis.com/ bar, is revealed to encourage sharing 
+5. If the site visitor is sending as email, an email is sent to the target email address(s) and copied to the visitor's email address. 
+6. If the site visitor has signing a petition, a thank you/confirmation email is sent to him/her.
+7. An email that includes the referer, the visitors IP address and all keyed data is sent to the campaign email address. 
+8. A normally hidden form, which can contain social media buttons e.g. the http://www.addthis.com/ bar, is revealed to encourage sharing 
 or to send a prepared email to one or more friends.  
 
 = Features =
@@ -244,6 +244,6 @@ you are currently using and may have edited and corrected it if necessary.
 
 == For More Information ==
 
-Detail configuration options and notes are maintained in the readme.html in the released package. 
+Detailed configuration options and notes are maintained in the readme.html in the released package. 
 The most recent version is at http://plugins.svn.wordpress.org/ecampaign/trunk/readme.html
 
