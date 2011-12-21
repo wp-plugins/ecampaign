@@ -3,8 +3,8 @@ Contributors: john ackers
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=john%2eackers%40ymail%2ecom&lc=GB&item_name=John%20Ackers&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: advocacy, activism, email, petition, ecampaign
 Requires at least: 3.0.1
-Tested up to: 3.2.1
-Stable tag: 0.82
+Tested up to: 3.3
+Stable tag: 0.83
 
 Allows a simple petition or email based campaign action to be embedded 
 into any wordpress page or post.
@@ -12,55 +12,56 @@ into any wordpress page or post.
 == Description ==
 
 This plugin allows a campaign action to be embedded into any wordpress page 
-or post. The sequence of events is:
+or post. The supported sequence of events is:
 
-1. The site visitor is presented with a form containing the petition body or an email message.
-2. The visitor adds their name, email address, postal address etc. and can or may be required to customize 
+1. The site visitor views the form containing the petition body or an email message.
+2. The visitor enters his/her name, email address, postal address etc. and can or may be required to customize 
 the text of the email.
-3. The visitor clicks on 'Sign' or 'Send', this is logged.
-4. If applicable,  the email is sent to the target email address(s) and copied to the visitor's address. 
-5. If applicable, an extended version of the email that includes the referer, the visitors IP address and details 
-of the checked boxes is sent to the campaign email address. 
-6. A hidden form is revealed which encourages the visitor to send a prepared email 
-to one or more friends.
-7. The visitor adds email addresses and clicks on 'Send email to friends'. 
+3. The visitor clicks on 'Sign' or 'Send'.
+4. If enabled, the site visitor receives an email containing a verification code, which must be rekeyed into the form 
+5a. If the site visitor is sending as email, an email is sent to the target email address(s) and copied to the visitor's email address. 
+5b. If the site visitor has signing a petition, a confirmation email is sent to him/her.
+6. An email that includes the referer, the visitors IP address and all keyed data is sent to the campaign email address. 
+7. A normally hidden form, which can contain social media buttons e.g. the http://www.addthis.com/ bar, is revealed to encourage sharing 
+or to send a prepared email to one or more friends.  
 
 = Features =
 
-* Site visitors name, address, email address can exported as CSV file.
+* Site visitors can be be automatically registered as wordpress users.
+* Site visitors details can exported as CSV file.
 * Site visitors that opt-in can be subscribed to PHPList http://www.phplist.com/.
 * Petition signatures and all other activity/errors/exceptions logged.
 * Optional CAPTCHA support using http://www.phpcaptcha.org/.
+* No bulky pages, users sees just one page, all interaction is via AJAX.
 * Email addresses, zipcodes and UK postcodes are client side validated.
 * Optional verification of site visitor's email address.
-* Site visitor can be required to edit email message, by removing optional guidance notes, before sending.
-* Test mode prevents emails being sentto the the target address accidentally.
-* No bulky pages, user interaction is via AJAX.
+* Site visitor can be required to change the body of outgoing message before sending.
+* Test mode prevents emails being sent to the the target address accidentally.
+* Standard and custom fields can be added/removed/rearranged/resized changed.
+* The template for a form can be embeddded in each wordpress post, allowing every campaign action 
+to have a different form or the editable site wide templates can be used. 
 * Most error messages are returned to the visitor, all are logged.
-* Fields can be added/removed/rearranged/resized changed.  
-* Email addresses displayed are obfuscated to hinder spammers.
 * Log entries are paged, filtered and can be deleted.
 * I18n language translation support for server side messages.
-* Extensions to look up UK MPs and councillors.
+* Extensions to look up email addresses for UK MPs, MSPs and councillors.
 
 
 = Configurable Options = 
 
 The site administrator can:
 
-* add/remove/modify fields from the three form templates
-* modify the attributes of the INPUT and TEXTAREA elements
-* add 1 or 2 checkboxes (e.g. to opt-in to an email list).
+* add/resize/remove/modify input fields and checkboxes for the templates for the 3 forms
+* add/override the attributes of the INPUT and TEXTAREA elements
+* edit templates for the email address verfication and confirmation emails.
 * enable DNS checking of email addresses.
 
 
 == Installation ==
 
-1. Install using 'Plugin, add new" or upload ecampaign.zip to the server and unzip in `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
-4. Create a page that contains [ecampaign] and [/ecampaign] tags, see Setting up a campaign action
-5. View that page. The supplied style sheet works for the Atahualpa theme. 
+1. Follow the [standard installation procedure for WordPress plugins](http://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
+2. Configure under admin >> Settings >> Ecampaign or got to /wp-admin/options-general.php?page=ecampaign
+3. Create a page that contains [ecampaign] and [/ecampaign] tags, see Setting up a campaign action
+4. View that page. The supplied style sheet works for the Atahualpa theme. 
 For other themes you may need to change the padding and the fonts etc. If the default template doesn't
 match the screen shots, check the template in Ecampaign settings especially after upgrades. 
 
@@ -141,7 +142,10 @@ you are currently using and may have edited and corrected it if necessary.
 == Changelog ==
 
 = 0.83 =
+* Site visitors can be be automatically registered as wordpress users.
+* Custom text and checkbox fields supported
 * Widget will now display all campaign actions if post id not specified.
+* Improved ecampaign log view, all field search added.
 * public and admin js and css separated.
 
 = 0.82 =
@@ -202,6 +206,9 @@ you are currently using and may have edited and corrected it if necessary.
 * First version
 
 == Upgrade Notice ==
+= 0.83 = 
+* Upgrade not required.
+
 = 0.82 = 
 * Upgrade not required.
 
