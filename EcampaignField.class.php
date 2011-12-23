@@ -191,17 +191,16 @@ class EcampaignField
    * Attributes can be single or double quoted.
    * regexp test string: ab-c_d=%abc123 winpath="C:\john smith" upath=/home/john/web cdef='ede dddew'
    * @param $attributes
-   * @param $unquote if true, remove quotes around arguments
    */
 
-  static function parseAttributes($attributes, $unquote=true)
+  static function parseAttributes($attributes)
   {
     $map = array();
     $count = preg_match_all("!(\w[\w-]+)=([\w\\\/\.%]+|([\'\"])(.+?)\\3)!", $attributes, $matches);
     for ($j = 0  ; $j < $count ; $j++)
     {
       list($key, $value, $unquotedValue) = array($matches[1][$j],$matches[2][$j],$matches[4][$j]);
-      $map[$key] = ($unquote && !empty($unquotedValue)) ? $unquotedValue : $value ;
+      $map[$key] = $unquotedValue ;
     }
     return $map ;
   }
@@ -209,7 +208,7 @@ class EcampaignField
   /**
    * convert attribute map into string (reverses parseAttributes)
    *
-   * Attributes can be single or double quoted.
+   * Attributes are requoted
    *
    * @param $attributes
    */
@@ -219,7 +218,7 @@ class EcampaignField
     $s = "" ; foreach($map as $key=>$val)   // implode map.
     {
       if (!empty($val))
-        $s.= $key."=".$val." " ;            // relying on existing quotes
+        $s.= $key."='".$val."' " ;          // requote attributes
     }
     return $s ;
   }
