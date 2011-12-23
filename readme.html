@@ -356,13 +356,16 @@ visitors who opt-in using checkbox2 use:
 optin=checkbox2
 </code>
 <p>Note that new wordpress users are given a 6 character random password which they can 
-reset, and they can update and delete their account. However if site visitors are 
-required to verify their email address, the code supplied in the verification email
-will also become their wordpress account password. 
+reset, and they can update and delete their account. 
 </p>
 <p>
-Site visitors can be notified of passwords of freshly created wordpress accounts using either 
-the email verification email or the petition confirmation email. 
+If site visitors are required to verify their email address, the code supplied in the 
+verification email (inserted the token %code) will subsequently become their wordpress account password. 
+</p>
+<p>
+If site visitors do not have to verify their email address, and the site visitor is signing an email, the password 
+of any freshly created wordpress account can be included in the the petition confirmation email (inserted 
+using the token %password). If an account with the the same visitor name already exists, the %password will be blank.
 </p>
 <p>
 Fields in the template that have the 
@@ -504,7 +507,6 @@ by all the campaign actions on the same page (if there are more than one).</li>
 Mail is sent directly via the PHPMailer class because it provides access to 
 error messages which aren't available through the wordpress API via wp_mail.
 </p>
-
 
 </body>
 </html>

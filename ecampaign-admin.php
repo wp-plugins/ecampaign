@@ -147,7 +147,7 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
 
   $adminFields[] = array('ec_verificationEmailSubject',
   __("Subject of email sent to site visitor with verification code. $tokenHelp"),
-  __("Verification code for ecampaign action."));
+  __("Verification code for ecampaign action"));
 
 
   $adminFields[] = array('ec_verificationEmailBody',
@@ -170,13 +170,18 @@ If you believe that you have received this email in error please contact %campai
 
 
   $adminFields[] = array('ec_confirmationEmailBody',
-  __("Text of email sent to site visitor to confirm name has been added to petition. You can include %permalink. $tokenHelp"),
+  __("Text of email sent to site visitor to confirm name has been added to petition. You can include %password
+  to show the password of a freshly created wordpress account or %permalink.
+   . $tokenHelp"),
   __("Dear %visitorName,
 
 Thank you for signing the petition
 
 %subject at
 %permalink
+
+If an account has been created for you, the password is below
+%password
 
 If you believe that you have received this email in error please contact %campaignEmail."));
 

@@ -90,10 +90,12 @@ class EcampaignTableView
     global $wpdb ;
 
     $drows = $wpdb->get_var("SET @rownum = 0; ");
-    $drows = $wpdb->get_results(
-    "SELECT $visibleColumns
+
+    $sqlStatement = "SELECT $visibleColumns
     from $this->from WHERE 1=1 $this->where ORDER BY $this->orderBy
-    LIMIT $this->limit OFFSET $this->offset", ARRAY_A);
+    LIMIT $this->limit OFFSET $this->offset";
+
+    $drows = $wpdb->get_results($sqlStatement, ARRAY_A);
 
     if (!isset($_REQUEST['format']))
       $form->add($this->addTableContent($drows, $fieldPresentations));
@@ -105,7 +107,7 @@ class EcampaignTableView
          ->wrap("a","href='?page=ecampaign-log' style='text-decoration:none' ")
          ->add($form);
 
-    if (false)
+    if (true)
     {
       $footer = new EcampaignString($wpdb->last_query);  // useful when debugging
       $footer->wrap("p")->addTo($page);

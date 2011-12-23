@@ -193,14 +193,14 @@ class EcampaignLog
         'log.visitorEmail' => __('email'),
         'log.visitorName' => __('name'));
 
-    $join = "" ; $where = "" ;  $metaColumns = array();
+    $join = " left join {$wpdb->prefix}users as u on log.visitorEmail = u.user_email" ;
+
+    $where = "" ;  $metaColumns = array();
 
     $num=0 ; foreach($umFields as $f)
     {
-      $join .= " left join {$wpdb->prefix}users as u$num on log.visitorEmail = u$num.user_email
-               left join {$wpdb->prefix}usermeta as um$num on u$num.ID = um$num.user_id " ;
-      $where .= " and um$num.meta_key='{$f['name']}' ";
-      $metaColumns["um$num.meta_value as {$f['name']} "] = $f['title'] ;
+      $metaColumns["(select um$num.meta_value from {$wpdb->prefix}usermeta as um$num
+      where um$num.meta_key='{$f['name']}' and um$num.user_id=u.ID)"] = $f['title'] ;
       $num++  ;
     }
     $userMetaView = array("_from" => self::$tableName . " as log $join ",
