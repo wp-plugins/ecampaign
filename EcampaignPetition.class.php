@@ -61,8 +61,14 @@ class EcampaignPetition extends Ecampaign
 
     foreach ($targetFields as $f) //save all the custom fields
     {
-      if ($f->isCustom && (!empty($f->value) || isset($f->mandatory)))
-        $this->infoMap[] = "$f->name: $f->value " . ($f->type=="checkbox" ? $f->label : "") ;
+      $isCheckbox = $f->attribMap["type"]=='checkbox' ;
+      if ($isCheckbox || ($f->isCustom && ($f->mandatory || !empty($f->value))))
+      {
+        if ($isCheckbox)
+          $this->infoMap[] = $f->name .": ".  ($f->value=='on' ? "on" : "off") . " " . $f->label ;
+        else
+          $this->infoMap[] = $f->name .": ".  $f->value ;
+      }
     }
 
     /* catcha and verification need to work together easily if only for test pUurposes.

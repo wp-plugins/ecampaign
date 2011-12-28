@@ -30,12 +30,10 @@ class MSP extends EcampaignTarget
     $this->submitEnabled = false  ;       // initially disable the send button
   }
 
-  function initializeCannedFields()
+  function getPredefinedFields($s="")
   {
-    parent::initializeCannedFields();
-    $this->cannedFields[self::sLookup] = array('lookup MSP',   0,  0);
+    return parent::getPredefinedFields($s.'{'.self::sLookup.' label="Lookup MSP" type="button"}');
   }
-
 
   function createField($noun, $efield, $page)
   {

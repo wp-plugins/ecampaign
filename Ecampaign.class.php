@@ -93,47 +93,40 @@ class Ecampaign
     if (!isset(self::$formList)) self::$formList = array();
   }
 
-/*
-  function initializeCannedFieldsNext()
+
+  static function getDefaultFields()
   {
-    $this->cannedFields =
+    $fields = array(
+      self::sTo           . '  label="'.__('To') .      '"',
+      self::sSubject      . '  data-min=10 size=70',
+      self::sBody         . '  data-min=30 cols=70 rows=10',
+      self::sVisitorName  . '* label="'.__('Name').     '" data-min=4  size=20',
+      self::sVisitorEmail . '* label="'.__('Email').    '" data-min=4  size=20  class=validateEmail',
+      self::sAddress1     . '  label="'.__('Address 1').'" data-min=4  size=20',
+      self::sAddress2     . '  label="'.__('Address 2').'" data-min=4  size=0',
+      self::sAddress3     . '  label="'.__('Address 3').'" data-min=4  size=20',
+      self::sCity         . '  label="'.__('City').     '" data-min=4  size=10',
+      self::sPostcode     . '  label="'.__('Postcode'). '" data-min=4  size=10',
+      self::sUKPostcode   . '  label="'.__('Postcode'). '" data-min=4  size=10  class=validateUKPostcode',
+      self::sZipcode      . '  label="'.__('Zipcode').  '" data-min=5  size=10  class=validateZipcode',
+      self::sState        . '  label="'.__('State').    '" data-min=2  size=2',    // tx, ca
+      self::sCountry      . '  label="'.__('Country').  '" data-min=2  size=15',   // us, uk
+      self::sVeriCode     . '  label="'.__('Code').     '" data-min=4  size=4',
+      self::sCaptcha      . '  label="'.__('Captcha').  '" data-min=4  size=4',
+      self::sSend         . '  label="'.__('Send').     '"',
+      self::sSign         . '  label="'.__('Sign the petition').'"',
 
-    " { " .self::sTo.     " label = ". __('To'). " min=10 size=70 } ".
-    " { " .self::sSubject." label = ". __('').   " min=10 size=70 } ".
-    " { " .self::sBody. " label = ". __('').   " min=10 size=70 } ".
+      self::sFriendEmail  . '  label="'.__('Friend\'s email address'). '" data-min=0 size=20 class=validateEmail',
+      self::sFriendSend   . '  label="'.__('Send to friends').         '" data-min=0',
 
-    "";
-  }
-*/
-
-
-  function initializeCannedFields()
-  {
-    $this->cannedFields = array(
-      self::sTo           => array(__('To')),    // field lengths irrelevant
-      self::sSubject      => array(null,           "data-min='10' size='70'"),
-      self::sBody         => array(null,           "data-min='30' cols='70' rows='10'"),
-      self::sVisitorName  => array(__('Name'),     "data-min='4'  size='20'"),
-      self::sVisitorEmail => array(__('Email'),    "data-min='4'  size='20'", 'validateEmail'),
-      self::sAddress1     => array(__('Address 1'),"data-min='4'  size='20'"),
-      self::sAddress2     => array(__('Address 2'),"data-min='4'  size='20'"),
-      self::sAddress3     => array(__('Address 3'),"data-min='4'  size='20'"),
-      self::sCity         => array(__('City'),     "data-min='4'  size='10'"),
-      self::sPostcode     => array(__('Postcode'), "data-min='4'  size='10'"),
-      self::sUKPostcode   => array(__('Postcode'), "data-min='4'  size='10'", 'validateUKPostcode'),
-      self::sZipcode      => array(__('Zipcode'),  "data-min='5'  size='10'", 'validateZipcode'),
-      self::sState        => array(__('State'),    "data-min='2'  size='2'"),    // tx, ca
-      self::sCountry      => array(__('Country'),  "data-min='2'  size='15'"),   // us, uk
-      self::sVeriCode     => array(__('Code'),     "data-min='4'  size='4'"),
-      self::sCaptcha      => array(__('Captcha'),  "data-min='4'  size='4'"),
-      self::sSend         => array(__('Send')),
-      self::sSign         => array(__('Sign the petition')),
-
-      self::sFriendEmail  => array(__("Friend's email address") ,"data-min='0', size=15'",'validateEmail'),
-      self::sFriendSend   => array(__('Send to friends'),        "data-min='0'"),
-
-      self::sCampaignEmail=> array(null, "")              // so it gets saved as session data
+      self::sCampaignEmail. ' '          // so it gets saved as session data
     );
+    return $fields ;
+  }
+
+  function getPredefinedFields($s="")
+  {
+    return $s.get_option('ec_predefinedFields');
   }
 
   /**
@@ -145,64 +138,62 @@ class Ecampaign
    * attribute values can be single or double quoted but quotes cannot be quoted or escaped
    *
    * parser tested at http://www.regextester.com/index2.html with string
-   * {subject* min=20 flavor='chocolate chip' Lorem ipsum dolor sit amet}
+   * {subject* min=20 flavor="sheile's chocolate chip" Lorem ipsum dolor sit amet}
    * {body rows=8 cols='70' Ut enim ad minim veniam}
    *
    * @return array of EcampaignField
    */
-  const regexParseTemplate = '${(\w+)(\*)?((?:\s+[\w][\w-]+=(?:[%]?[\w]+|[\'\"\”][^\'\"\”]+[\'\"\”]))*)\s*([^}]*)}$' ;
+  const regexParseTemplate = '${(\w+)(\*)?((?:\s+[\w][\w-]+=(?:[%]?[\w]+|[\'][^\']*\'|[\"][^\"]*\"|[\”][^\”]*\”))*)\s*([^}]*)}$' ;
 
   function parseTemplate($layout, $pageAttributes)
   {
+    preg_match_all(self::regexParseTemplate, $this->getPredefinedFields(), $predef2);
+    $predefinedFields = array();
+    for($i = 0 ;  $i < count($predef2[0]) ; $i++)
+    {
+      $predefinedFields[$predef2[1][$i]] = $i ;
+    }
+
     $parsedFields = array();
     preg_match_all(self::regexParseTemplate, $layout, $parsedFields);
     // the label and default sizes of all the supported fields are listed above.
     // special handling is handled in the case statement below.
 
     $templateFields = array();
-    for($i = 0 ;  $i < count($parsedFields[0]) ; $i++)
+    for($k = 0 ;  $k < count($parsedFields[0]) ; $k++)
     {
       $efield = new EcampaignField ;
-      $efield->wholeField = $parsedFields[0][$i];
-      $noun = $parsedFields[1][$i];
+      $efield->wholeField = $parsedFields[0][$k];
+      $noun = $parsedFields[1][$k];
 
       // use aliases for just these two fields, full name use everywhere else
       if ($noun == 'name')  $noun = 'visitorName';
       if ($noun == 'email') $noun = 'visitorEmail';
 
-      $efield->name = $noun ;
+      $i = $predefinedFields[$noun];
 
-      $knownField = $this->cannedFields[$noun];
-
-      if (!isset($knownField))
+      if (empty($i))
       {
-        $knownField = array($noun,'');  // ignore fields like %xyz we don't recognise, they will stay in the text
         $efield->isCustom = true ;
       }
       // attributes in template or form are allowed to overwrite canned attributes
-      $attributeMap = EcampaignField::parseAttributes($knownField[1]." ".$parsedFields[3][$i]);
+      $efield->attribMap = EcampaignField::parseAttributes($predef2[3][$i]." ".$parsedFields[3][$k]);
+      $efield->attribMap['name'] = $efield->name = $noun ;
 
-      $efield->label = isset($attributeMap['label']) ? $attributeMap['label'] : $knownField[0];
-      $attributeMap['label'] = null ;  // remove label attribute from HTML
+      // take out the attributes that only ecampaign knows about
+      $efield->label = $efield->attribMap['label'] ;  $efield->attribMap['label'] = null ;
+      $efield->save = $efield->attribMap['save'];     $efield->attribMap['save'] = null;
 
-      $efield->save = $attributeMap['save'];  $attributeMap['save'] = null;
-      $efield->type = $attributeMap['type'];
-      $efield->attributes = EcampaignField::serializeAttributes($attributeMap);
-      $efield->mandatory = $parsedFields[2][$i] == "*";
-      $efield->value = $value = trim($parsedFields[4][$i]);
-      $efield->validator = $knownField[2];
+      $efield->mandatory = $predef2[2][$i] == "*" || $parsedFields[2][$k] == "*" ;
 
-      if (!empty($value))
-      {
-        $efield->definition = true ;
-        $efield->value = $value ;
-      }
+      $efield->value = trim($parsedFields[4][$k]);
+//      if (!empty($parsedFields[4][$k]) = trim($parsedFields[4][$k]);
+
       // page attributes override any values set in template fields even if template on the page
       if (empty($efield->value))
       {
         $efield->value = $pageAttributes->$noun ;
       }
-
       $templateFields[$noun] = $efield ;
     }
     return $templateFields ;
@@ -216,7 +207,6 @@ class Ecampaign
 
   function createPage($pageAttributes, $pageBody)
   {
-    $this->initializeCannedFields();
     $this->testMode = new EcampaignTestMode($pageAttributes->testMode);
     if (empty($pageBody))
       throw new Exception(__("there is no text between [ecampaign] and [/ecampaign] or the closing [/ecampaign] is missing"));
@@ -410,8 +400,7 @@ class Ecampaign
    *
    * @param unknown_type $response
    */
-  function revealNextApplicableForm($response)
-  {
+  function revealNextApplicableForm($response)  {
     $currentID = $_POST['formID'];
 
     if (!is_array(self::$formList))
@@ -526,11 +515,7 @@ class Ecampaign
         $helpOutOfTestMode =  $this->testMode->is(EcampaignTestMode::sNormal) ? "" : "<span id='text-test-mode'>&nbsp;[{$this->testMode->toString()} <a href='{$settingsUrl}')>change</a>]</span>"  ;
         $html = "<label id='lab-to'>$efield->label:</label><span id='recipients-email' class='ecinputwrap'>$recipientsBrokenUp</span>$helpOutOfTestMode" ;
         break ;
-/*
-      case self::sSubject  :
-        $html = $efield->writeField(null);
-        break ;
-*/
+
       case self::sBody :
         if (isset($this->bodyTrailer))   // set in EcampaignFriends to carry url of post
           $efield->value .= $this->bodyTrailer ;
@@ -559,16 +544,17 @@ class Ecampaign
 
       case self::sVeriCode :
         $efield->wrapper = 'eccode hidden';
-        $html = $efield->writeField();
+        $html = $efield->writeLabelledWrappedField();
         break ;
 
       case self::sSign :
       case self::sSend :
       case self::sFriendSend :
-        $efield->attributes .= $this->submitEnabled ? "" : " disabled='disabled'" ;
-        $efield->attributes .= " onclick=\"return ecam.onClickSubmit(this, '$this->classPath', '$noun');\" ";
-        $efield->name = 'submit';
-        $html = "<div class='ecsend'>".$efield->writeButton()."</div><div class='ecstatus'></div>" ;
+        $efield->attribMap['type'] = 'button' ;
+        $efield->attribMap['disabled'] = $this->submitEnabled ? "" : "disabled" ;
+        $efield->attribMap['onclick'] = "return ecam.onClickSubmit(this, '$this->classPath', '$noun'); ";
+        $efield->attribMap['value'] = $efield->label ;  unset($efield->label);
+        $html = "<div class='ecsend'>".$efield->writeField()."</div><div class='ecstatus'></div>" ;
         break ;
 
 
@@ -577,7 +563,7 @@ class Ecampaign
         $efield->wrapper = 'ecfriend' ;
         $html = "
         <div id='ec-friends-list'>".
-          $efield->writeField()."
+          $efield->writeLabelledWrappedField()."
           <div id='ec-add-friend'><label>&nbsp;</label>
           <a href='#' onclick='return ecam.addFriend()'>" . __("add another") . "</a></div>
         </div>";
@@ -591,19 +577,19 @@ class Ecampaign
 
       case self::sCampaignEmail :
         $efield->isCustom =false ;
-        $html = $efield->definition ? "" : self::breakupEmail($efield->value);
+        $html = self::breakupEmail($efield->value);
         break ;
 
       case self::sSuccessMessage :  // have to remove any para tags, new lines are just ignored
         $efield->isCustom =false ;
         $efield->value = $this->replaceParagraphTagsWithNewlines($efield->value);
-        $html = $efield->definition ? "" : $efield->value;
+        $html = "" ;
         break ;
 
 
       case self::sCheckbox1 :
       case self::sCheckbox2 :
-        $efield->type='checkbox' ;
+        $efield->attribMap['type']='checkbox' ;
 
       default :  // handles name, email, zipcode, postcode etc
 
@@ -611,16 +597,26 @@ class Ecampaign
         // the label is taken from the value i.e. the text inside the {}
         // and the initial value (checked or otherwise) has to be set using the checked attribute
 
-        if ($efield->type=='checkbox')
+        switch (strtolower($efield->attribMap['type']))
         {
-          $efield->label = $efield->value ;  $efield->value = null;
-          $html = $efield->writeCheckBox();
-          break ;
-        }
-        else
-        {
-          $html = $efield->writeField();
-          break ;
+          case 'textarea' :
+            $html = $efield->writeTextArea();
+            break ;
+
+          case 'checkbox' :
+            $efield->label = $efield->value ;  unset($efield->value);
+            $html = $efield->writeCheckBox();
+            break ;
+
+          case 'hidden' :
+            $efield->attribMap['value'] = $efield->value ; unset($efield->value);
+            $html = $efield->writeField();
+            break ;
+
+          default :
+            $efield->attribMap['value'] = $efield->value ; unset($efield->value);
+            $html = $efield->writeLabelledWrappedField();
+            break ;
         }
     }
     return $html ;

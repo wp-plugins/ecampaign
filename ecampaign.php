@@ -3,7 +3,7 @@
  Plugin Name: Ecampaign
  Plugin URI: http://wordpress.org/extend/plugins/ecampaign/
  Description: Allows a simple email based campaign action to be embedded into any wordpress page or post.
- Version: 0.83
+ Version: 0.84
  Author: John Ackers
  Author URI: john.ackers HATT ymail.com
 

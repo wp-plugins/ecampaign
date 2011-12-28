@@ -74,6 +74,8 @@ function _getAdminFields()
   if (!empty($adminFields))
     return ($adminFields);
 
+  $fieldsHelp = Ecampaign::help('#fields');
+
   $adminFields[] = array('ec_testMode',
   __("Test Modes: Divert or suppress outgoing emails that would normally be sent to the
      target email address. Divert changes the <strong>To:</strong> field of the outgoing email'. ") .
@@ -90,11 +92,20 @@ function _getAdminFields()
   __("Campaign mailbox address 'campaignEmail'; copies of activists emails are sent here. You can override it on
       individual email alerts."), 'campaign.email@not.set.up');
 
+  $pdef =""; foreach (Ecampaign::getDefaultFields() as $fieldDefinition)
+  {
+    $pdef .= "{".$fieldDefinition."}\r\n";
+  }
+
+  $adminFields[] = array('ec_predefinedFields',
+  __("Change the labels, lengths, attributes and default values of the predefined fields.
+      Field order is not significant. Custom fields may also be defined here. $fieldsHelp."), $pdef);
+
   // setting up the default form layout
-  $fieldsHelp = Ecampaign::help('#fields');
   $adminFields[] = array('ec_layout',
 
-  __("<p>Target Form template. Add and remove fields that you want to collect. $fieldsHelp.</p>"),
+  __("<p>Target Form template. Add and remove fields, change field order and adjust attributes.
+  This template is ignored if the fields are directly embedded into the post in between [ecampaign] and [/ecampaign]. $fieldsHelp.</p>"),
 '{to}
 {subject*}
 {body*}
@@ -118,7 +129,8 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
 
   $adminFields[] = array('ec_petitionLayout',
 
-  __("<p>Petition Form template. Add and remove fields that you want to collect. $fieldsHelp.</p>"),
+  __("<p>Petition Form template. Add and remove fields, change field order and adjust attributes.
+  This template is ignored if the fields are directly embedded into the post in between [ecampaign] and [/ecampaign]. $fieldsHelp.</p>"),
 'The petition:
 {body*}
 <div class="text-guidance">'. __("Please add your name and address.").  '</div>
@@ -136,7 +148,7 @@ __("Please contact {campaignEmail} if you have any difficulties or queries. "). 
  <div class="ecOk">'.__('Thank you for taking part in this action.').'</div>}');
 
   $adminFields[] = array('ec_friendsLayout',
-  "<p>".__("Friend Form template. Add and remove fields that you want to collect. $fieldsHelp.")."</p>",
+  "<p>".__("Friend Form template. Change field order and adjust attributes. $fieldsHelp.")."</p>",
   '<h4 id="text-friends">' . __('Share with friends') . '</h4>
 {subject}
 {body}
@@ -263,6 +275,7 @@ function ec_options()
 
         _renderInputField($prompt, $default, 'ec_campaignEmail');
 
+        _renderDualTextArea($prompt, $default, 'ec_predefinedFields', 26, 4);
         _renderDualTextArea($prompt, $default, 'ec_layout', 26, 4);
         _renderDualTextArea($prompt, $default, 'ec_petitionLayout', 20, 4);
         _renderDualTextArea($prompt, $default, 'ec_friendsLayout', 6, 2);
@@ -362,7 +375,6 @@ function _renderDualTextArea($prompt, $default, $tname, $rows, $other="")
 function _analyzeTemplate($template, $minimumFields)
 {
   $ecampaign = new Ecampaign;
-  $ecampaign->initializeCannedFields();
   $fields = $ecampaign->parseTemplate($template, array());
   $numCustom = $numStandard = 0 ;
   foreach($fields as $f)

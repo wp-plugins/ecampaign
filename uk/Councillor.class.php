@@ -39,10 +39,9 @@ class Councillor extends EcampaignTarget
     $this->submitEnabled = false  ;       // initially disable the send button
   }
 
-  function initializeCannedFields()
+  function getPredefinedFields($s="")
   {
-    parent::initializeCannedFields();
-    $this->cannedFields[self::sLookup] = array(__('lookup councillors'),   0,  0);
+    return parent::getPredefinedFields($s.'{'.self::sLookup.' label="Lookup Councillor(s)" type="button"}');
   }
 
   function createField($noun, $field, $page)

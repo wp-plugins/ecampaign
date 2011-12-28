@@ -30,12 +30,10 @@ class MP extends EcampaignTarget
     $this->submitEnabled = false  ;       // initially disable the send button
   }
 
-  function initializeCannedFields()
+  function getPredefinedFields($s="")
   {
-    parent::initializeCannedFields();
-    $this->cannedFields[self::sLookup] = array(__('lookup MP'));
+    return parent::getPredefinedFields($s.'{'.self::sLookup.' label="Lookup MP" type="button"}');
   }
-
 
   function createField($noun, $efield, $page)
   {

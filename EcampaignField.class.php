@@ -11,9 +11,9 @@
 class EcampaignField
 {
   private static $nextIDForEachPage = array();  /// must maintain separate IDs for each page
-  public $label, $name, $attributes, $mandatory, $validator ;
+  public $label, $attribMap, $attributes, $mandatory ;
   public $wrapper = null ;
-  public $type = null ;
+
   const tTextArea = 'textArea' ;
 
   function __construct($name = null)
@@ -23,47 +23,52 @@ class EcampaignField
       $this->mandatory = true ;
   }
 
-  function writeField()
+  function writeLabelledWrappedField()
   {
     $label = $this->label.":" ;
 
     if ($this->mandatory)
     {
-      $this->validator .= ' mandatory' ;
+      $this->attribMap['class'] .= ' mandatory' ;
       $label .= "&nbsp;*" ;
     }
     // note that $label can contain apostrophes.
     // input text is wrapped by div so error can be attached
-    $id = self::nextID();
-    $replace = !empty($this->label) ? "<label id='lab-$id' for='$id' >".$label."</label>" : "" ;
-    $replace .="<span class='ecinputwrap'><input type='text' name='$this->name' id='$id' $this->attributes class='$this->validator' value=\"{$this->value}\"/></span>";
-    if (!isset($this->wrapper))
-      return $replace ;
-    return "<div class='$this->wrapper'>\r\n".$replace."</div>\r\n";
+    $this->attribMap['type'] = 'text' ;   // for jquery to read
+    $content = !empty($this->label) ? "<label id='lab-$id' for='$id' >".$label."</label>" : "" ;
+    $content .="<span class='ecinputwrap'>".$this->writeField()."</span>";
+    return !isset($this->wrapper) ? $content : "<div class='$this->wrapper'>\r\n".$content."</div>\r\n" ;
   }
 
-
+  /**
+   * label follows field
+   */
   function writeCheckBox()
   {
-    $id = self::nextID();
-    return "<input type='checkbox' name='$this->name' id='$id' $this->attributes/><label for='$id'>$this->label</label>";
+    return $this->writeField() . "<label for='$id'>$this->label</label>";
   }
 
+  function writeWrappedField()
+  {
+    $content = $this->writeField();
+    return !isset($this->wrapper) ? $content : "<div class='$this->wrapper'>\r\n".$content."</div>\r\n" ;
+  }
 
-  function writeButton()
+  function writeField()
   {
     $id = self::nextID();
-    $replace = "<input type='button' name='$this->name' id='$id' $this->attributes value=\"{$this->label}\" />";
-    if (!isset($this->wrapper))
-      return $replace ;
-    return "<div class='$this->wrapper'>\r\n".$replace."</div>\r\n";
+    $this->attributes = self::serializeAttributes($this->attribMap);
+    unset($this->attribMap);  // save only the serialized attributes in the form
+    $content = "<input id='$id' ".$this->attributes."/>";
+    return $content ;
   }
-
 
   function writeTextArea()
   {
-    $this->type = self::tTextArea ;
-    return "<textarea name='$this->name' $this->attributes>".$this->value."</textarea>" ;
+    $this->type = null ;
+    $this->attributes = self::serializeAttributes($this->attribMap);
+    unset($this->attribMap);
+    return "<textarea ".$this->attributes.">".$this->value."</textarea>" ;
   }
 
   /**
@@ -128,6 +133,7 @@ class EcampaignField
       }
       $this->value = $value;
     }
+    $this->attribMap = self::parseAttributes($this->attributes);
     $this->assertLength()->assertCleanString();
     return $this ;
   }
@@ -145,12 +151,11 @@ class EcampaignField
     if (empty($this->value))
       if (!$this->mandatory)
         return $this ;
-    $attributes = self::parseAttributes($this->attributes);
 
-    if (empty($attributes['data-min']))
+    if (empty($this->attribMap['data-min']))
       return $this ;    // no min specified
 
-    $this->min = $attributes['data-min'];
+    $this->min = $ths->attribMap['data-min'];
     if (is_numeric($this->min))
     {
       if (strlen($this->value) < $this->min)
@@ -200,7 +205,7 @@ class EcampaignField
     for ($j = 0  ; $j < $count ; $j++)
     {
       list($key, $value, $unquotedValue) = array($matches[1][$j],$matches[2][$j],$matches[4][$j]);
-      $map[$key] = $unquotedValue ;
+      $map[$key] = !empty($unquotedValue) ? $unquotedValue : $value ;
     }
     return $map ;
   }
@@ -218,7 +223,7 @@ class EcampaignField
     $s = "" ; foreach($map as $key=>$val)   // implode map.
     {
       if (!empty($val))
-        $s.= $key."='".$val."' " ;          // requote attributes
+        $s.= $key."=\"".$val."\" " ;          // requote attributes
     }
     return $s ;
   }
