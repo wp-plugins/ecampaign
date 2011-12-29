@@ -148,7 +148,7 @@ class Ecampaign
   function parseTemplate($layout, $pageAttributes)
   {
     preg_match_all(self::regexParseTemplate, $this->getPredefinedFields(), $predef2);
-    $predefinedFields = array();
+    $predefinedFields = array(0 => array());
     for($i = 0 ;  $i < count($predef2[0]) ; $i++)
     {
       $predefinedFields[$predef2[1][$i]] = $i ;
@@ -172,10 +172,12 @@ class Ecampaign
 
       $i = $predefinedFields[$noun];
 
-      if (empty($i))
+      if (!isset($i))
       {
         $efield->isCustom = true ;
+        $i = 0 ;
       }
+
       // attributes in template or form are allowed to overwrite canned attributes
       $efield->attribMap = EcampaignField::parseAttributes($predef2[3][$i]." ".$parsedFields[3][$k]);
       $efield->attribMap['name'] = $efield->name = $noun ;
@@ -186,14 +188,9 @@ class Ecampaign
 
       $efield->mandatory = $predef2[2][$i] == "*" || $parsedFields[2][$k] == "*" ;
 
-      $efield->value = trim($parsedFields[4][$k]);
-//      if (!empty($parsedFields[4][$k]) = trim($parsedFields[4][$k]);
+      $efield->value = self::firstNotEmpty(
+        array($pageAttributes->$noun, $parsedFields[4][$k], $predef2[4][$i]));
 
-      // page attributes override any values set in template fields even if template on the page
-      if (empty($efield->value))
-      {
-        $efield->value = $pageAttributes->$noun ;
-      }
       $templateFields[$noun] = $efield ;
     }
     return $templateFields ;
@@ -559,7 +556,7 @@ class Ecampaign
 
 
       case self::sFriendEmail :
-        $efield->name = 'emailfriend1';
+        $efield->attribMap['name'] = 'emailfriend1';
         $efield->wrapper = 'ecfriend' ;
         $html = "
         <div id='ec-friends-list'>".
@@ -623,8 +620,13 @@ class Ecampaign
   }
 
 
+  static function firstNotEmpty($ar)
+  {
+    foreach($ar as $item)
+      if (!empty($item)) return($item);
+    return $item ;
+  }
 
-//  <label for="send-formName" class="labeloverlay sendoverlay labeloverlayhidden" >Name</label>
 
   /**
    * Convert </p> and <br/> tags into CR-LF and strip out any adjacent CR and LF that happen to be there
