@@ -228,7 +228,7 @@ class EcampaignPetition extends Ecampaign
     {
       $mailer->ClearAllRecipients();
       $mailer->AddAddress($fieldSet->campaignEmail);
-      $mailer->Subject = "$fieldSet->ch1 : $fieldSet->ch2 : " . $fieldSet->subject ;
+      $mailer->Subject = $fieldSet->subject ;
 
       $this->infoMap[] = " "; $this->infoMap[] = $mailer->Body;
       $mailer->Body = implode("\r\n", $this->infoMap);
@@ -303,9 +303,9 @@ class EcampaignPetition extends Ecampaign
 
       $list = _createFromClassPath($listClassPath);
 
-      $list->subscribe($this->templateFields, $fieldSet);
+      $logMsg = $list->subscribe($this->templateFields, $fieldSet);
 
-      $this->log->write("subscribe", $fieldSet, $this->infoMap);
+      if (!empty($logMsg)) $this->log->write("subscribe", $fieldSet, $logMsg);
     }
     catch(Exception $e)
     {

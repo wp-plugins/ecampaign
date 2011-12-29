@@ -41,7 +41,7 @@ class EcampaignSubscribeUser
       $optinb = $templateFields[$optin]->value == 'on' || $templateFields[$optin]->value == 1 ;
     }
     if (!$optinb)
-      return ;
+      return null ;
 
     $user = get_user_by('email', $fieldSet->visitorEmail);
     if (!$user)
@@ -59,14 +59,16 @@ class EcampaignSubscribeUser
     {
       $fieldSet->userID = $user->ID ;
     }
-    foreach ($templateFields as $field)
+    $fieldList = "" ; foreach ($templateFields as $field)
     {
       if (strcasecmp($field->save,'usermeta')==0 && !empty($field->value))
       {
         $success = update_user_meta($fieldSet->userID, $field->name, $field->value);
         if (!success)
           throw Exception("Unable to update user meta data for $fieldSet->visitorEmail");
+        $fieldList .= $field->name . " " ;
       }
     }
+    return "updated $fieldList" ;
   }
 }

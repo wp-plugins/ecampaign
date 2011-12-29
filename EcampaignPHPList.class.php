@@ -74,12 +74,15 @@ class EcampaignPHPList
 
       $optinb = $templateFields[$optin]->value == 'on' || $templateFields[$optin]->value == 1 ;
     }
-
+    $logMsg = null ;
     $listID = $this->args['listID'];
     if ($optinb && is_numeric($listID))
+    {
       self::addEmailToList($fieldSet->visitorEmail, $listID);
-
+      $logMsg = "added to list $listID" ;
+    }
     mysql_close(self::$db);
+    return $logMsg ;
   }
 
   /**
