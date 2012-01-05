@@ -54,22 +54,21 @@ class EcampaignPetition extends Ecampaign
 
     $fieldSet->postalAddress = $address->removeEmptyFields();
 
-    $this->infoMap = array(
-       "referrer: " . $fieldSet->referer,
-       "remote: " . "{$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}",
-       "user-agent: " . $_SERVER['HTTP_USER_AGENT']);
-
+    $this->infoMap = array();
     foreach ($targetFields as $f) //save all the custom fields
     {
       $isCheckbox = $f->attribMap["type"]=='checkbox' ;
       if ($isCheckbox || ($f->isCustom && ($f->mandatory || !empty($f->value))))
       {
         if ($isCheckbox)
-          $this->infoMap[] = $f->name .": ".  ($f->value=='on' ? "on" : "off") . " " . $f->label ;
+          $this->infoMap[$f->name] = ($f->value=='on' ? "on" : "off") . " " . $f->label ;
         else
-          $this->infoMap[] = $f->name .": ".  $f->value ;
+          $this->infoMap[$f->name] = $f->value ;
       }
     }
+    $this->infoMap["referrer"] = $fieldSet->referer ;
+    $this->infoMap["remote"] =  "{$_SERVER['REMOTE_HOST']} {$_SERVER['REMOTE_ADDR']}" ;
+    $this->infoMap["user-agent"] = $_SERVER['HTTP_USER_AGENT'];
 
     /* catcha and verification need to work together easily if only for test pUurposes.
      * verification field not displayed until captcha entered so don't check captcha again
@@ -127,7 +126,7 @@ class EcampaignPetition extends Ecampaign
                      "msg" => __("The code entered $userSuppliedVerificationCode does not appear to match the value sent by email."));
       }
       $fieldSet->passwordProposed = $userSuppliedVerificationCode ;
-      $this->log->write(EcampaignLog::tVerified, $fieldSet, $this->infoMap);
+      $this->log->write(EcampaignLog::tVerified, $fieldSet, self::writeArray($this->infoMap));
     }
 
     // Increment counter. Note that this read-and-update is not an
@@ -162,7 +161,7 @@ class EcampaignPetition extends Ecampaign
                         "msg" => __("You have already signed this petition")) ;
       return $response ;
     }
-    $this->log->write(EcampaignLog::tSign, $fieldSet, $this->infoMap);    // name added to petition !
+    $this->log->write(EcampaignLog::tSign, $fieldSet, self::writeArray($this->infoMap));    // name added to petition !
 
     $this->subscribe($fieldSet);  // and perhaps get back a user password
     $this->sendEmailToSiteVisitor("ec_confirmationEmail", $fieldSet);
@@ -209,7 +208,8 @@ class EcampaignPetition extends Ecampaign
          ->add($fieldSet->postalAddress);
     $mailer->Body = $text->asBlock();
 
-    array_unshift($this->infoMap,'recipients: ' . ($recipientString = implode(', ', $fieldSet->recipients)));
+    $infoMap2 = array('recipients' => $recipientString = implode(', ', $fieldSet->recipients));
+    $this->infoMap = array_merge($infoMap2, $this->infoMap); //recipients first in array
 
     $delivery = $this->testMode->isSuppressed() ? 1 : ($mailer->Send() ? 2 : 0);
 
@@ -217,9 +217,9 @@ class EcampaignPetition extends Ecampaign
       throw new Exception(__("unable to send email to") . " {$recipientString}, {$mailer->ErrorInfo}");
 
     if (!$this->testMode->isNormal())
-      $this->infoMap[] = 'test mode: ' . $this->testMode->toString();
+      $this->infoMap['test mode'] = $this->testMode->toString();
 
-    $this->log->write(EcampaignLog::tSend, $fieldSet, $this->infoMap);
+    $this->log->write(EcampaignLog::tSend, $fieldSet, self::writeArray($this->infoMap));
     $this->subscribe($fieldSet);
 
     // forward a similar version of the email to the campaign but add the checkfields that they have clicked
@@ -229,9 +229,7 @@ class EcampaignPetition extends Ecampaign
       $mailer->ClearAllRecipients();
       $mailer->AddAddress($fieldSet->campaignEmail);
       $mailer->Subject = $fieldSet->subject ;
-
-      $this->infoMap[] = " "; $this->infoMap[] = $mailer->Body;
-      $mailer->Body = implode("\r\n", $this->infoMap);
+      $mailer->Body =  self::writeArray($this->infoMap) ."\r\n\r\n". $mailer->Body;
 
       $delivery |= $this->testMode->isSuppressed() ? 1 : ($mailer->Send() ? 2 : 0);
 
@@ -311,6 +309,14 @@ class EcampaignPetition extends Ecampaign
     {
       $this->log->write("exception", $fieldSet, $e->getMessage());
     }
+  }
+
+  static function writeArray($ar)
+  {
+    $out = "";
+    foreach ($ar as $key => $value)
+      $out .= $key.": ".$value."\r\n";
+    return $out ;
   }
 }
 
