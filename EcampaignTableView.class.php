@@ -169,7 +169,7 @@ class EcampaignTableView
     if (empty($search)) return ;
     foreach ($this->visibleColumnSet as $column => $name)
     {
-      $colWords = split("as", $column);
+      $colWords = preg_split("%as%", $column);
       $where .= " or $colWords[0] LIKE '%".mysql_real_escape_string($search)."%' ";
     }
     $this->where .= " and (false $where)" ;
@@ -240,7 +240,7 @@ class EcampaignTableView
 
   function addDeleteControl($sb, $totalRows)
   {
-    $tables = split(" ", $this->from);  // cannot delete rows selected in a multi table join
+    $tables = preg_split("%\s%", $this->from);  // cannot delete rows selected in a multi table join
     if (count($tables) > 1) return ;
 
     $q = $this->createQuery(array());
