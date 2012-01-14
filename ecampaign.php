@@ -109,7 +109,7 @@ function _createFromClassPath($classPath)
   if (!file_exists($classFile))
     throw new Exception (__("Cannot open:$classFile"));
   include_once $classFile ;
-  $classPath = split('/',$classPath); // loose the directory
+  $classPath = preg_split('$/$',$classPath); // loose the directory
   $class = $classPath[count($classPath)-1] ;
   return new $class ;
 }
