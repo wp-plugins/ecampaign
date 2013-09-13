@@ -68,6 +68,8 @@ class Councillor extends EcampaignTarget
    * email the original or updated message to the party or parties that are the target of
    * this campaign.
    * can throw exception containing text error message
+   *
+   * reworked 13-sep-13 to use modified openly local API.
    */
 
   function lookup()
@@ -80,40 +82,20 @@ class Councillor extends EcampaignTarget
     {
       throw new Exception("Postcode field is empty");
     }
-    $fallsWithin = self::request(
-    "http://neighbourhood.statistics.gov.uk/NDE2/Disco/SearchSByAByPostcode?LevelTypeId=14&Postcode=". $this->fieldSet->ukpostcode,
-    "/ns2:SearchSByAByPostcodeResponseElement//ns0:AreaFallsWithin");
+    $wardUrl = "http://openlylocal.com/areas/postcodes/" . $this->fieldSet->ukpostcode .".xml";
 
-    if ($fallsWithin == null)
+    $wardLink = "<a href='$wardUrl'>more info</a>" ;
+
+    $wardInfo = self::request($wardUrl);
+    if (empty($wardInfo))
       return array("success" => false,
-                   "msg"=> "Unable to find ward details for ". $this->fieldSet->ukpostcode);
+                   "msg"=>"Unable to retrieve information for this ward: " . $wardLink);
 
-    $wardid = (int) $fallsWithin->Area->AreaId;
-    $wardName = (String) $fallsWithin->Area->Name ;
-
-    $councilid = (int) $fallsWithin->FallsWithin->Area->AreaId ;  // names not being read
-    $councilName = (String) $fallsWithin->FallsWithin->Area->Name ;  // names not being read
-/*
-    $councilSnacId = request("http://neighbourhood.statistics.gov.uk/NDE2/Disco/GetAreaDetail?AreaId=". $councilid,
-    "/ns2:GetAreaDetailResponseElement/ns0:AreaDetail/ns0:ExtCode");
-
-    $councilDetail = request("http://openlylocal.com/councils/snac_id/". $councilSnacId .".xml");
-*/
-    $wardSnacId = (String) self::request(
-    "http://neighbourhood.statistics.gov.uk/NDE2/Disco/GetAreaDetail?AreaId=". $wardid,
-    "/ns2:GetAreaDetailResponseElement/ns0:AreaDetail/ns0:ExtCode");
-
-    $wardUrl = "http://openlylocal.com/wards/snac_id/". $wardSnacId .".xml";
-
-    $wardInfo = "<a href='$wardUrl'>more info</a>" ;
-
-    $wardMembers = self::request($wardUrl, "/ward/members");
-    if (empty($wardMembers))
-      return array("success" => false,
-                   "msg"=>"Unable to retrieve information for this constituency: " . $wardInfo);
+    $councilName = (String) $wardInfo->ward->council->name;
+    $wardName = (String) $wardInfo->ward->name;
 
     $councillors = array();
-    foreach ($wardMembers->member as $member)
+    foreach ($wardInfo->ward->members->member as $member)
     {
       $councillor = array();
       $councillor['name']  = (String) $member->{"first-name"}." ".$member->{"last-name"} ;
@@ -122,7 +104,7 @@ class Councillor extends EcampaignTarget
       $councillors[] = $councillor;
     }
     $success = !empty($councillors);
-    $info = $success ? "$wardName, $councilName" : "Members for $wardName, $councilName not available on OpenlyLocal.com database $wardInfo";
+    $info = $success ? "$wardName, $councilName" : "Members for $wardName, $councilName not available on OpenlyLocal.com database $wardLink";
     $this->log->write("lookup", $this->fieldSet, $info);
     return array("target" => $councillors,
                  "council" => $councilName,
@@ -131,6 +113,7 @@ class Councillor extends EcampaignTarget
                  "callbackJS" => 'updateMessageFields',
                  "msg" => $info);
   }
+
 
 
   /**
